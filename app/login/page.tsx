@@ -122,6 +122,7 @@ export default function LoginPage() {
             background: "#0c0c0c",
             color: "white",
             fontSize: "14px",
+            marginLeft: "40px",
           }}
         />
 
@@ -140,6 +141,7 @@ export default function LoginPage() {
             background: "#0c0c0c",
             color: "white",
             fontSize: "14px",
+            marginLeft: "40px"
           }}
         />
 
