@@ -201,7 +201,7 @@ margin-top: 1rem !important;
 /* ============================================
 MOBILE-FIXES (NEU UND WICHTIG)
 ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
 
 .dashboard-container {
 width: 100% !important;
