@@ -1287,7 +1287,6 @@ color: "#111827",
 fontSize: "13px",
 fontWeight: 700,
 cursor: "pointer",
-boxShadow: "0 0 14px rgba(250,204,21,0.45)",
 }}
 >
 Hilfe & Support
