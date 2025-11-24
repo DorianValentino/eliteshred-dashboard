@@ -110,7 +110,7 @@ export default function LoginPage() {
         {/* EMAIL */}
         <input
           type="email"
-          placeholder="E-Mail eingeben"
+          placeholder="E-Mail eingebennnn"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
