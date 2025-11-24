@@ -2,7 +2,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import React from "react";
-import "@/styles/mobile.css";
+import "./mobile.css";
 
 export const metadata: Metadata = {
   title: "EliteShred Dashboard",
