@@ -803,6 +803,7 @@ marginLeft: 6,
 
 {/* GRID LAYOUT */}
 <div
+className="mobile-full"
 style={{
 display: "grid",
 gridTemplateColumns: "1.2fr 1fr",
