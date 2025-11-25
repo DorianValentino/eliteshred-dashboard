@@ -8,114 +8,105 @@ export default function WaitingPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
-  // 🔄 alle paar Sekunden checken, ob der Client aktiviert wurde
   useEffect(() => {
     const email = localStorage.getItem("client_email");
+
     if (!email) {
       router.replace("/login");
       return;
     }
 
-    const interval = setInterval(async () => {
+    const checkActivation = async () => {
       setChecking(true);
       const { data, error } = await supabase
         .from("Klienten")
-        .select("IsActivated, OnboardingDone")
+        .select("IsActivated")
         .eq("Email", email)
         .single();
 
       setChecking(false);
 
-      if (!error && data?.IsActivated && data?.OnboardingDone) {
+      if (error) {
+        console.log("IsActivated Check Fehler:", error.message);
+        return;
+      }
+
+      if (data?.IsActivated) {
         router.replace("/dashboard");
       }
-    }, 5000);
+    };
 
+    checkActivation();
+    const interval = setInterval(checkActivation, 10000);
     return () => clearInterval(interval);
   }, [router]);
 
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh",
         display: "flex",
-        justifyContent: "center",
         alignItems: "center",
-        padding: "24px 16px",
-        background: "radial-gradient(circle at top, #020617, #000000 65%)",
-        color: "#f9fafb",
+        justifyContent: "center",
+        flexDirection: "column",
+        background: "radial-gradient(circle at top,#000,#050505)",
+        color: "white",
+        textAlign: "center",
+        padding: "0 16px",
       }}
     >
-      <div
+      <h1
         style={{
-          maxWidth: "520px",
-          width: "100%",
-          textAlign: "center",
-          padding: "32px 24px 40px",
-          borderRadius: "16px",
-          background: "rgba(0,0,0,0.9)",
-          border: "1px solid rgba(250,204,21,0.35)",
-          boxShadow: "0 0 40px rgba(0,0,0,0.9)",
+          fontSize: 30,
+          marginBottom: 16,
+          fontWeight: 800,
+          background: "linear-gradient(90deg,#fff,#facc15)",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
         }}
       >
-        <h1
-          style={{
-            fontSize: "28px",
-            fontWeight: 800,
-            marginBottom: "16px",
-            lineHeight: 1.25,
-            background: "linear-gradient(90deg,#fff,#facc15)",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-          }}
-        >
-          Dein Dashboard wird eingerichtet
-        </h1>
+        Dein Dashboard wird eingerichtet
+      </h1>
 
-        <p
-          style={{
-            fontSize: "15px",
-            color: "#e5e7eb",
-            marginBottom: "10px",
-          }}
-        >
-          Dein Coach richtet jetzt deinen individuellen Plan ein.
-          Du erhältst Zugriff, sobald du freigeschaltet bist.
-        </p>
+      <p
+        style={{
+          maxWidth: 420,
+          opacity: 0.85,
+          fontSize: 14,
+          marginBottom: 20,
+        }}
+      >
+        Dein Coach richtet jetzt deinen individuellen Plan ein.  
+        Du erhältst Zugriff, sobald du freigeschaltet bist.
+      </p>
 
-        <p
-          style={{
-            fontSize: "13px",
-            color: "#9ca3af",
-            marginBottom: "0",
-          }}
-        >
-          Wird automatisch aktualisiert, sobald du aktiviert bist.{" "}
-          {checking ? "(prüfe Status …)" : ""}
-        </p>
+      {/* 🔥 NEUER KORREKTER LADEKREIS */}
+      <div
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: "50%",
+          border: "6px solid rgba(250,204,21,0.25)",
+          borderTopColor: "#facc15",
+          animation: "spin 1s linear infinite",
+          marginBottom: 12,
+        }}
+      />
 
-        {/* 🔁 Spinner – auf allen Geräten ein perfekter Kreis */}
-        <div
-          style={{
-            margin: "32px auto 0",
-            width: 64,
-            height: 64,
-            borderRadius: "999px",
-            border: "4px solid rgba(250,204,21,0.22)",
-            borderTopColor: "#facc15",
-            animation: "es-spin 1s linear infinite",
-          }}
-        />
+      <p style={{ fontSize: 12, color: "#9ca3af" }}>
+        {checking
+          ? "Status wird geprüft..."
+          : "Wird automatisch aktualisiert, sobald du aktiviert bist."}
+      </p>
 
-        <style>
-          {`
-            @keyframes es-spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-          `}
-        </style>
-      </div>
+      <style>
+        {`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}
+      </style>
     </div>
   );
 }
