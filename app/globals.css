@@ -11,7 +11,6 @@ html,
 body {
 width: 100%;
 max-width: 100%;
-overflow-x: hidden !important;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
 "Segoe UI", sans-serif;
 background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
@@ -234,10 +233,5 @@ transform: scale(0.9);
 svg {
 max-width: 100% !important;
 height: auto !important;
-}
-
-html, body {
-    height: 100dvh;
-    overflow: hidden !important;
 }
 }
