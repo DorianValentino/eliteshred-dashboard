@@ -8,6 +8,11 @@ export default function WaitingPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
+  // iPhone Detection
+  const isIOS =
+    typeof navigator !== "undefined" &&
+    /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   useEffect(() => {
     const email = localStorage.getItem("client_email");
 
@@ -36,12 +41,8 @@ export default function WaitingPage() {
       }
     };
 
-    // sofort einmal checken
     checkActivation();
-
-    // dann alle 10 Sekunden erneut prüfen
     const interval = setInterval(checkActivation, 10000);
-
     return () => clearInterval(interval);
   }, [router]);
 
@@ -80,12 +81,28 @@ export default function WaitingPage() {
           marginBottom: 20,
         }}
       >
-        Dein Coach richtet jetzt deinen individuellen Plan ein.  
+        Dein Coach richtet jetzt deinen individuellen Plan ein.
         Du erhältst Zugriff, sobald du freigeschaltet bist.
       </p>
 
-      {/* LOADER (Desktop = Kreis, iPhone = 3 Punkt Loader) */}
-      <div className="loader"><div /></div>
+      {/* --- SPINNER --- */}
+      {isIOS ? (
+        // iPhone Standard Loader
+        <div className="ios-loader" />
+      ) : (
+        // Desktop Spinner
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "999px",
+            border: "3px solid rgba(250,204,21,0.3)",
+            borderTopColor: "#facc15",
+            animation: "spin 1s linear infinite",
+            marginBottom: 8,
+          }}
+        />
+      )}
 
       <p style={{ fontSize: 12, color: "#9ca3af" }}>
         {checking
@@ -95,62 +112,19 @@ export default function WaitingPage() {
 
       <style>
         {`
-        /* Desktop Loader (Kreis wie bei dir) */
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
 
-        .loader {
-          width: 40px;
-          height: 40px;
-          border-radius: 999px;
-          border: 3px solid rgba(250,204,21,0.3);
+        /* iPhone Native Loader */
+        .ios-loader {
+          width: 28px;
+          height: 28px;
+          border: 4px solid rgba(250,204,21,0.25);
           border-top-color: #facc15;
-          animation: spin 1s linear infinite;
-          margin-bottom: 8px;
-        }
-
-        /* ------------------------------ */
-        /* iPhone Loader (3 Punkte Style) */
-        /* ------------------------------ */
-        @media (max-width: 600px) {
-          .loader {
-            width: auto;
-            height: auto;
-            border: none;
-            animation: none;
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-            justify-content: center;
-            align-items: center;
-          }
-
-          .loader::before,
-          .loader::after,
-          .loader div {
-            content: "";
-            width: 8px;
-            height: 8px;
-            background-color: #facc15;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1s infinite ease-in-out;
-          }
-
-          .loader::after {
-            animation-delay: 0.2s;
-          }
-
-          .loader div {
-            animation-delay: 0.4s;
-          }
-
-          @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1); opacity: 1; }
-          }
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
         }
       `}
       </style>
