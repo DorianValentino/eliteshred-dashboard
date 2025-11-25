@@ -1207,66 +1207,76 @@ Noch keine Einträge.
 
 {/* FOOTER */}
 <div
-style={{
-marginTop: "20px",
-paddingTop: "12px",
-borderTop: "1px solid rgba(31,41,55,0.9)",
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-fontSize: "12px",
-color: "#9ca3af",
-}}
+  style={{
+    marginTop: "30px",
+    paddingTop: "16px",
+    borderTop: "1px solid rgba(31,41,55,0.7)",
+  }}
 >
-<span>EliteShred Client Dashboard</span>
-<button
-onClick={() => router.push("/client-info")}
-style={{
-padding: "8px 14px",
-borderRadius: "999px",
-border: "1px solid rgba(255,215,0,0.45)",
-background: "transparent",
-color: "#facc15",
-fontWeight: 600,
-cursor: "pointer",
-fontSize: "13px",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-whiteSpace: "nowrap",
-}}
->
-Wie funktioniert das Dashboard?
-</button>
-<div
-style={{
-marginTop: "24px",
-display: "flex",
-justifyContent: "center",
-}}
->
-<button
-type="button"
-onClick={() => router.push("/hilfe")}
-style={{
-padding: "8px 16px",
-borderRadius: "999px",
-border: "1px solid #facc15",
-background:
-"linear-gradient(90deg,#fbbf24,#facc15,#eab308)",
-color: "#111827",
-fontSize: "13px",
-fontWeight: 700,
-cursor: "pointer",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-whiteSpace: "nowrap",
-}}
->
-Hilfe & Support
-</button>
-</div>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "12px",
+    }}
+  >
+    {/* LEFT TEXT */}
+    <span
+      style={{
+        fontSize: "14px",
+        color: "#9ca3af",
+        whiteSpace: "nowrap",
+      }}
+    >
+      EliteShred Client Dashboard
+    </span>
+
+    {/* RIGHT BUTTONS WRAPPER */}
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
+      <button
+        onClick={() => router.push("/client-info")}
+        style={{
+          padding: "8px 14px",
+          borderRadius: "999px",
+          border: "1px solid rgba(255,215,0,0.45)",
+          background: "transparent",
+          color: "#facc15",
+          fontWeight: 500,
+          cursor: "pointer",
+          fontSize: "13px",
+          boxShadow: "none",
+        }}
+      >
+        Wie funktioniert das Dashboard?
+      </button>
+
+      <button
+        onClick={() => router.push("/hilfe")}
+        style={{
+          padding: "8px 14px",
+          borderRadius: "999px",
+          border: "1px solid rgba(255,215,0,0.45)",
+          background: "transparent",
+          color: "#facc15",
+          fontWeight: 500,
+          cursor: "pointer",
+          fontSize: "13px",
+          boxShadow: "none",
+        }}
+      >
+        Hilfe & Support
+      </button>
+    </div>
+  </div>
 </div>
 </div>
 
