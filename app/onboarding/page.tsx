@@ -9,6 +9,12 @@ const BUCKET_NAME = "formchecks"; // ❗ Falls dein Bucket anders heißt → hie
 export default function OnboardingWizard() {
   const router = useRouter();
 
+  // ZOOM & SCROLL deaktivieren (mobile-hardlock)
+if (typeof window !== "undefined") {
+  document.body.style.overflow = "hidden";         // kein scrollen
+  document.documentElement.style.overflow = "hidden"; // fallback
+}
+
   // Wizard Schritt
   const [step, setStep] = useState(1);
 
