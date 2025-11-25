@@ -744,6 +744,7 @@ export default function OnboardingWizard() {
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
+                boxShadow: "none",
               }}
             >
               Zurück

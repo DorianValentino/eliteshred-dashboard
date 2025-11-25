@@ -8,39 +8,28 @@ export default function WaitingPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
+  // 🔄 alle paar Sekunden checken, ob der Client aktiviert wurde
   useEffect(() => {
     const email = localStorage.getItem("client_email");
-
     if (!email) {
       router.replace("/login");
       return;
     }
 
-    const checkActivation = async () => {
+    const interval = setInterval(async () => {
       setChecking(true);
       const { data, error } = await supabase
         .from("Klienten")
-        .select("IsActivated")
+        .select("IsActivated, OnboardingDone")
         .eq("Email", email)
         .single();
 
       setChecking(false);
 
-      if (error) {
-        console.log("IsActivated Check Fehler:", error.message);
-        return;
-      }
-
-      if (data?.IsActivated) {
+      if (!error && data?.IsActivated && data?.OnboardingDone) {
         router.replace("/dashboard");
       }
-    };
-
-    // sofort einmal checken
-    checkActivation();
-
-    // dann alle 10 Sekunden erneut prüfen
-    const interval = setInterval(checkActivation, 10000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [router]);
@@ -48,67 +37,85 @@ export default function WaitingPage() {
   return (
     <div
       style={{
-        height: "100vh",
+        minHeight: "100vh",
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        flexDirection: "column",
-        background: "radial-gradient(circle at top,#000,#050505)",
-        color: "white",
-        textAlign: "center",
-        padding: "0 16px",
+        alignItems: "center",
+        padding: "24px 16px",
+        background: "radial-gradient(circle at top, #020617, #000000 65%)",
+        color: "#f9fafb",
       }}
     >
-      <h1
-        style={{
-          fontSize: 30,
-          marginBottom: 16,
-          fontWeight: 800,
-          background: "linear-gradient(90deg,#fff,#facc15)",
-          WebkitBackgroundClip: "text",
-          color: "transparent",
-        }}
-      >
-        Dein Dashboard wird eingerichtet
-      </h1>
-      <p
-        style={{
-          maxWidth: 420,
-          opacity: 0.85,
-          fontSize: 14,
-          marginBottom: 20,
-        }}
-      >
-        Dein Coach richtet jetzt deinen individuellen Plan ein.  
-        Du erhältst Zugriff, sobald du freigeschaltet bist.
-      </p>
-
       <div
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: "999px",
-          border: "3px solid rgba(250,204,21,0.3)",
-          borderTopColor: "#facc15",
-          animation: "spin 1s linear infinite",
-          marginBottom: 8,
+          maxWidth: "520px",
+          width: "100%",
+          textAlign: "center",
+          padding: "32px 24px 40px",
+          borderRadius: "16px",
+          background: "rgba(0,0,0,0.9)",
+          border: "1px solid rgba(250,204,21,0.35)",
+          boxShadow: "0 0 40px rgba(0,0,0,0.9)",
         }}
-      />
+      >
+        <h1
+          style={{
+            fontSize: "28px",
+            fontWeight: 800,
+            marginBottom: "16px",
+            lineHeight: 1.25,
+            background: "linear-gradient(90deg,#fff,#facc15)",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          Dein Dashboard wird eingerichtet
+        </h1>
 
-      <p style={{ fontSize: 12, color: "#9ca3af" }}>
-        {checking
-          ? "Status wird geprüft..."
-          : "Wird automatisch aktualisiert, sobald du aktiviert bist."}
-      </p>
+        <p
+          style={{
+            fontSize: "15px",
+            color: "#e5e7eb",
+            marginBottom: "10px",
+          }}
+        >
+          Dein Coach richtet jetzt deinen individuellen Plan ein.
+          Du erhältst Zugriff, sobald du freigeschaltet bist.
+        </p>
 
-      <style>
-        {`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}
-      </style>
-    </div>
-  );
+        <p
+          style={{
+            fontSize: "13px",
+            color: "#9ca3af",
+            marginBottom: "0",
+          }}
+        >
+          Wird automatisch aktualisiert, sobald du aktiviert bist.{" "}
+          {checking ? "(prüfe Status …)" : ""}
+        </p>
+
+        {/* 🔁 Spinner – auf allen Geräten ein perfekter Kreis */}
+        <div
+          style={{
+            margin: "32px auto 0",
+            width: 64,
+            height: 64,
+            borderRadius: "999px",
+            border: "4px solid rgba(250,204,21,0.22)",
+            borderTopColor: "#facc15",
+            animation: "es-spin 1s linear infinite",
+          }}
+        />
+
+        <style>
+          {`
+            @keyframes es-spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      </div>
+    </div>
+  );
 }
