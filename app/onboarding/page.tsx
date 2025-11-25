@@ -757,6 +757,8 @@ export default function OnboardingWizard() {
               type="button"
               onClick={goNext}
               style={{
+                position: "sticky",
+                bottom: 0,
                 flex: 1.2,
                 padding: "10px 14px",
                 borderRadius: "999px",
