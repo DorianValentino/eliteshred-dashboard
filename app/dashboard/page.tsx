@@ -899,7 +899,7 @@ color: "white",
 onClick={saveEntry}
 style={{
 marginTop: "8px",
-marginBottom: "8px",
+marginBottom: "16px",
 padding: "10px 16px",
 borderRadius: "999px",
 border: "1px solid #FFD700",
