@@ -9,12 +9,6 @@ const BUCKET_NAME = "formchecks"; // ❗ Falls dein Bucket anders heißt → hie
 export default function OnboardingWizard() {
   const router = useRouter();
 
-  // ZOOM & SCROLL deaktivieren (mobile-hardlock)
-if (typeof window !== "undefined") {
-  document.body.style.overflow = "hidden";         // kein scrollen
-  document.documentElement.style.overflow = "hidden"; // fallback
-}
-
   // Wizard Schritt
   const [step, setStep] = useState(1);
 
@@ -271,11 +265,7 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "10px" }}>
       <div
         style={{
-          padding: "14px 12px",
-          fontSize: "16px",
-          lineHeight: "1.4",
-          minHeight: "44px",
-
+          fontSize: "11px",
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
@@ -296,7 +286,7 @@ if (typeof window !== "undefined") {
           border: "1px solid rgba(148,163,184,0.7)",
           backgroundColor: "#020617",
           color: "white",
-          fontSize: "16px",
+          fontSize: "14px",
         }}
       />
     </div>
@@ -311,11 +301,7 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "10px" }}>
       <div
         style={{
-          padding: "14px 12px",
-          fontSize: "16px",
-          lineHeight: "1.4",
-          minHeight: "44px",
-
+          fontSize: "11px",
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
@@ -336,7 +322,7 @@ if (typeof window !== "undefined") {
           border: "1px solid rgba(148,163,184,0.7)",
           backgroundColor: "#020617",
           color: "white",
-          fontSize: "16px",
+          fontSize: "14px",
           resize: "vertical",
         }}
       />
@@ -351,11 +337,7 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "12px" }}>
       <div
         style={{
-          padding: "14px 12px",
-          fontSize: "16px",
-          lineHeight: "1.4",
-          minHeight: "44px",
-
+          fontSize: "11px",
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
@@ -503,7 +485,7 @@ if (typeof window !== "undefined") {
                 marginBottom: "14px",
               }}
             >
-              Ehrlichee Startdaten = ehrlicher Plan. Startgewicht ist Pflicht.
+              Ehrliche Startdaten = ehrlicher Plan. Startgewicht ist Pflicht.
             </p>
 
             {renderInput("Vorname", vorname, setVorname, {

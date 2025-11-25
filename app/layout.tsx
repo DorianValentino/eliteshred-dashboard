@@ -7,10 +7,6 @@ import "./mobile.css";
 export const metadata: Metadata = {
   title: "EliteShred Dashboard",
   description: "Client Dashboard für EliteShred Coaching",
-
-  // 🔥 WICHTIG: Zoom deaktivieren NUR auf Mobile
-  viewport:
-    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
 };
 
 export default function RootLayout({
@@ -20,12 +16,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <head>
-        <meta
-         name="viewport"
-         content="width=device-width, inirial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-         />
-      </head>
       <body
         style={{
           margin: 0,
@@ -60,7 +50,7 @@ export default function RootLayout({
             }}
           >
             <img
-              src="/logo.png"
+              src="/logo.png" // oder "/logo1.png", falls du das andere nutzen willst
               alt="EliteShred Logo"
               style={{
                 height: 36,
@@ -74,6 +64,6 @@ export default function RootLayout({
           <main style={{ flex: 1 }}>{children}</main>
         </div>
       </body>
-    </html>
-  );
+    </html>
+  );
 }

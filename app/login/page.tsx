@@ -122,7 +122,7 @@ export default function LoginPage() {
             border: "1px solid rgba(255,215,0,0.3)",
             background: "#0c0c0c",
             color: "white",
-            : "14px",
+            fontSize: "16px",
             marginRight: "30px",
           }}
         />
@@ -141,7 +141,7 @@ export default function LoginPage() {
             border: "1px solid rgba(255,215,0,0.3)",
             background: "#0c0c0c",
             color: "white",
-            fontSize: "14px",
+            fontSize: "16px",
             marginRight: "30px",
           }}
         />
