@@ -916,7 +916,7 @@ Eintrag speichern
 </section>
 
 {/* KLIENTENSTATUS – links */}
-<section
+<section className="mobile-hide"
 style={{
 padding: "16px",
 borderRadius: "12px",
