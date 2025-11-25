@@ -1222,14 +1222,15 @@ color: "#9ca3af",
 <button
 onClick={() => router.push("/client-info")}
 style={{
-padding: "6px 12px",
+padding: "4px 10px",
 borderRadius: "999px",
 border: "1px solid rgba(255,215,0,0.45)",
 background: "transparent",
 color: "#facc15",
 fontWeight: 500,
 cursor: "pointer",
-fontSize: "12px",
+fontSize: "10px",
+whiteSpace: "nowrap",
 }}
 >
 Wie funktioniert das Dashboard?
@@ -1245,15 +1246,16 @@ justifyContent: "center",
 type="button"
 onClick={() => router.push("/hilfe")}
 style={{
-padding: "10px 18px",
+padding: "6px 14px",
 borderRadius: "999px",
 border: "1px solid #facc15",
 background:
 "linear-gradient(90deg,#fbbf24,#facc15,#eab308)",
 color: "#111827",
-fontSize: "13px",
+fontSize: "11px",
 fontWeight: 700,
 cursor: "pointer",
+whiteSpace: "nowrap",
 }}
 >
 Hilfe & Support
