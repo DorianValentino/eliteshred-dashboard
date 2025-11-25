@@ -36,8 +36,12 @@ export default function WaitingPage() {
       }
     };
 
+    // sofort einmal checken
     checkActivation();
+
+    // dann alle 10 Sekunden erneut prüfen
     const interval = setInterval(checkActivation, 10000);
+
     return () => clearInterval(interval);
   }, [router]);
 
@@ -80,18 +84,8 @@ export default function WaitingPage() {
         Du erhältst Zugriff, sobald du freigeschaltet bist.
       </p>
 
-      {/* 🔥 NEUER KORREKTER LADEKREIS */}
-      <div
-        style={{
-          width: 60,
-          height: 60,
-          borderRadius: "50%",
-          border: "6px solid rgba(250,204,21,0.25)",
-          borderTopColor: "#facc15",
-          animation: "spin 1s linear infinite",
-          marginBottom: 12,
-        }}
-      />
+      {/* LOADER (Desktop = Kreis, iPhone = 3 Punkt Loader) */}
+      <div className="loader"><div /></div>
 
       <p style={{ fontSize: 12, color: "#9ca3af" }}>
         {checking
@@ -101,9 +95,62 @@ export default function WaitingPage() {
 
       <style>
         {`
+        /* Desktop Loader (Kreis wie bei dir) */
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        .loader {
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: 3px solid rgba(250,204,21,0.3);
+          border-top-color: #facc15;
+          animation: spin 1s linear infinite;
+          margin-bottom: 8px;
+        }
+
+        /* ------------------------------ */
+        /* iPhone Loader (3 Punkte Style) */
+        /* ------------------------------ */
+        @media (max-width: 600px) {
+          .loader {
+            width: auto;
+            height: auto;
+            border: none;
+            animation: none;
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .loader::before,
+          .loader::after,
+          .loader div {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background-color: #facc15;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1s infinite ease-in-out;
+          }
+
+          .loader::after {
+            animation-delay: 0.2s;
+          }
+
+          .loader div {
+            animation-delay: 0.4s;
+          }
+
+          @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+          }
         }
       `}
       </style>
