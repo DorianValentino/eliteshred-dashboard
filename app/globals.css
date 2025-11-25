@@ -235,4 +235,9 @@ svg {
 max-width: 100% !important;
 height: auto !important;
 }
+
+html, body {
+    height: 100dvh;
+    overflow: hidden !important;
+}
 }
