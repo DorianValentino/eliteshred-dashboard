@@ -503,7 +503,7 @@ if (typeof window !== "undefined") {
                 marginBottom: "14px",
               }}
             >
-              Ehrliche Startdaten = ehrlicher Plan. Startgewicht ist Pflicht.
+              Ehrlichee Startdaten = ehrlicher Plan. Startgewicht ist Pflicht.
             </p>
 
             {renderInput("Vorname", vorname, setVorname, {
