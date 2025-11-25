@@ -1222,14 +1222,17 @@ color: "#9ca3af",
 <button
 onClick={() => router.push("/client-info")}
 style={{
-padding: "4px 10px",
+padding: "8px 14px",
 borderRadius: "999px",
 border: "1px solid rgba(255,215,0,0.45)",
 background: "transparent",
 color: "#facc15",
-fontWeight: 500,
+fontWeight: 600,
 cursor: "pointer",
-fontSize: "10px",
+fontSize: "13px",
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
 whiteSpace: "nowrap",
 }}
 >
@@ -1246,15 +1249,18 @@ justifyContent: "center",
 type="button"
 onClick={() => router.push("/hilfe")}
 style={{
-padding: "6px 14px",
+padding: "8px 16px",
 borderRadius: "999px",
 border: "1px solid #facc15",
 background:
 "linear-gradient(90deg,#fbbf24,#facc15,#eab308)",
 color: "#111827",
-fontSize: "11px",
+fontSize: "13px",
 fontWeight: 700,
 cursor: "pointer",
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
 whiteSpace: "nowrap",
 }}
 >
