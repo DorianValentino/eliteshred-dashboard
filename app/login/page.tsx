@@ -36,19 +36,20 @@ export default function LoginPage() {
       router.replace("/onboarding");
       return;
     }
-    
+
     if (!data.IsActivated) {
-    router.replace("/waiting");
-    return;
-  }
-  
+      router.replace("/waiting");
+      return;
+    }
+
     router.replace("/dashboard");
-};
+  };
 
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100dvh", // << neu: echte Viewport-Höhe, kein Scrollen
+        overflow: "hidden", // << neu: verhindert hoch/runter
         background: "radial-gradient(circle at top, #050505, #000000 70%)",
         display: "flex",
         justifyContent: "center",
@@ -141,7 +142,7 @@ export default function LoginPage() {
             background: "#0c0c0c",
             color: "white",
             fontSize: "14px",
-            marginRight: "30px"
+            marginRight: "30px",
           }}
         />
 
@@ -190,6 +191,6 @@ export default function LoginPage() {
           }
         `}
       </style>
-    </div>
-  );
+    </div>
+  );
 }
