@@ -915,42 +915,7 @@ Eintrag speichern
 </div>
 </section>
 
-{/* KLIENTENSTATUS – links */}
-<section className="mobile-hide"
-style={{
-padding: "16px",
-borderRadius: "12px",
-background: "#050608",
-border: "1px solid rgba(255,215,0,0.18)",
-}}
->
-<h2 style={{ fontSize: "20px", marginBottom: "8px" }}>
-Dein Klientenstatus
-</h2>
-{clientData ? (
-<div style={{ fontSize: "14px", lineHeight: 1.5 }}>
-<p>
-<strong>Name:</strong> {clientData.Name}
-</p>
-<p>
-<strong>Ziel:</strong> {clientData.Ziel}
-</p>
-<p>
-<strong>Status:</strong> {clientData.Status}
-</p>
-{weeklyProgress !== null && (
-<p>
-<strong>Ernährungs-Consistency (7 Tage):</strong>{" "}
-{weeklyProgress}%
-</p>
-)}
-</div>
-) : (
-<p style={{ fontSize: "14px" }}>
-Kein Klient mit dieser E-Mail gefunden.
-</p>
-)}
-</section>
+
 </div>
 
 {/* RECHTE SPALTE */}
