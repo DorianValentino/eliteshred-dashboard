@@ -271,7 +271,11 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "10px" }}>
       <div
         style={{
-          fontSize: "11px",
+          padding: "14px 12px",
+          fontSize: "16px",
+          lineHeight: "1.4",
+          minHeight: "44px",
+
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
@@ -292,7 +296,7 @@ if (typeof window !== "undefined") {
           border: "1px solid rgba(148,163,184,0.7)",
           backgroundColor: "#020617",
           color: "white",
-          fontSize: "14px",
+          fontSize: "16px",
         }}
       />
     </div>
@@ -307,7 +311,11 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "10px" }}>
       <div
         style={{
-          fontSize: "11px",
+          padding: "14px 12px",
+          fontSize: "16px",
+          lineHeight: "1.4",
+          minHeight: "44px",
+
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
@@ -328,7 +336,7 @@ if (typeof window !== "undefined") {
           border: "1px solid rgba(148,163,184,0.7)",
           backgroundColor: "#020617",
           color: "white",
-          fontSize: "14px",
+          fontSize: "16px",
           resize: "vertical",
         }}
       />
@@ -343,7 +351,11 @@ if (typeof window !== "undefined") {
     <div style={{ marginBottom: "12px" }}>
       <div
         style={{
-          fontSize: "11px",
+          padding: "14px 12px",
+          fontSize: "16px",
+          lineHeight: "1.4",
+          minHeight: "44px",
+
           color: "#facc15",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
