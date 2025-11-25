@@ -930,6 +930,7 @@ padding: "16px",
 borderRadius: "12px",
 background: "#050608",
 border: "1px solid rgba(255,215,0,0.18)",
+marginTop: "32px",
 }}
 >
 <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>
