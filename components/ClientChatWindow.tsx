@@ -244,50 +244,61 @@ right: 0,
 width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
-borderLeft: isMobile ? "none" : "2px solid #facc15",
+// borderLeft: isMobile ? "none" : "2px solid #facc15", // BorderLeft nur für Desktop
 padding: "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
+// NEU: Keine goldene Linie oben auf Mobile
+borderTop: isMobile ? "none" : "2px solid #facc15",
 }}
 >
-{/* "✕" Button mit Kreis: STINKNORMALER KREIS */}
+{/* NEU: Flexbox-Container für Kopfzeile */}
+<div
+style={{
+display: 'flex',
+justifyContent: 'space-between',
+alignItems: 'center',
+marginBottom: "10px", // Etwas Abstand nach unten
+paddingBottom: "10px", // Innerer Abstand
+borderBottom: isMobile ? "1px solid rgba(255,255,255,0.1)" : "none", // Dezente Trennlinie auf Mobile
+}}
+>
+<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0 }}>
+Chat mit Coach
+</h2>
+
+{/* "✕" Button mit Kreis (JETZT IM FLEXBOX-CONTAINER) */}
 <button
 onClick={onClose}
 style={{
-position: "absolute",
-top: "15px",
-right: "15px",
+// position: "absolute", // Nicht mehr absolut positioniert
+// top: "15px", // Diese sind nicht mehr nötig
+// right: "15px", // da es im Flexbox ist.
 
 display: 'flex',
 alignItems: 'center',
 justifyContent: 'center',
 width: '30px',
 height: '30px',
-borderRadius: '50%', // Macht es rund
+borderRadius: '50%',
 fontSize: "16px",
 fontWeight: 700,
 
-color: "#facc15", // Farbe des X
-background: "transparent", // Hintergrund ist transparent
-border: "1px solid #facc15", // Sauberer gelber Kreis als Rand
+color: "#facc15",
+background: "transparent",
+border: "1px solid #facc15",
 
 cursor: "pointer",
 zIndex: 10,
 boxShadow: "none",
 transition: "all 0.2s",
-// Hover-Effekt (optional, aber gut für UX)
-// ':hover': {
-// background: 'rgba(250, 204, 21, 0.1)',
-// },
 }}
 >
 ✕
 </button>
+</div>
 
-<h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>
-Chat mit Coach
-</h2>
 
 {/* Nachrichten Container */}
 <div
