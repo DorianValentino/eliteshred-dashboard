@@ -105,6 +105,10 @@ onClose: () => void;
 onMessagesRead?: () => void;
 };
 
+// Konstante für die geschätzte Höhe der Eingabeleiste (ca. 70px)
+const INPUT_BAR_HEIGHT = 70;
+const HORIZONTAL_PADDING = 20;
+
 export default function ClientChatWindow({
 clientId,
 clientEmail,
@@ -129,14 +133,12 @@ window.addEventListener('resize', checkMobile);
 return () => window.removeEventListener('resize', checkMobile);
 }, []);
 
-// 🔥 Scroll-Lock für den Body (FINALER FIX: Behält Scroll-Position des Dashboards)
+// 🔥 Scroll-Lock für den Body (Behält Scroll-Position des Dashboards)
 useEffect(() => {
 if (typeof window !== 'undefined' && isMobile) {
-// Speichert die aktuelle Scroll-Position des Dashboards, bevor wir fixieren
 const scrollY = window.scrollY;
 document.body.style.top = `-${scrollY}px`;
 
-// Verhindert das Scrollen des Dashboard-Hintergrunds
 document.body.style.overflow = 'hidden';
 document.body.style.position = 'fixed';
 document.body.style.width = '100%';
@@ -144,15 +146,13 @@ document.body.style.width = '100%';
 
 return () => {
 if (typeof window !== 'undefined' && isMobile) {
-// Stellt die vorherige Scroll-Position wieder her, wenn die Komponente entfernt wird
 const scrollY = document.body.style.top;
 
 document.body.style.overflow = '';
 document.body.style.position = '';
 document.body.style.width = '';
-document.body.style.top = ''; // Löscht den Top-Wert
+document.body.style.top = '';
 
-// Stellt die Scroll-Position wieder her
 window.scrollTo(0, parseInt(scrollY || '0') * -1);
 }
 };
@@ -167,27 +167,20 @@ bottomRef.current.scrollIntoView({ behavior: "smooth" });
 }, 100);
 };
 
-// 🔥 Nachrichten laden + alle Coach-Nachrichten als gelesen markieren
+// 🔥 Nachrichten laden + Realtime Hooks (unverändert)
 useEffect(() => {
 const load = async () => {
 setLoading(true);
 const msgs = await loadMessagesForClient(clientId);
 setMessages(msgs);
 setLoading(false);
-
 await markMessagesFromCoachAsRead(clientId);
-
-if (onMessagesRead) {
-onMessagesRead();
-}
-
+if (onMessagesRead) { onMessagesRead(); }
 scrollToBottom();
 };
-
 load();
 }, [clientId, onMessagesRead]);
 
-// 🔥 Realtime: neue Nachrichten (INSERT) für diesen Client
 useEffect(() => {
 const channel = supabase
 .channel(`client-chat-${clientId}`)
@@ -201,35 +194,25 @@ filter: `client_id=eq.${clientId}`,
 },
 async (payload) => {
 const msg = payload.new as ChatMessage;
-
 if (msg.sender === "coach") {
 setMessages((prev) => [...prev, msg]);
 scrollToBottom();
-
 await supabase
 .from("messages")
 .update({ is_read: true })
 .eq("id", msg.id);
-
-if (onMessagesRead) {
-onMessagesRead();
-}
+if (onMessagesRead) { onMessagesRead(); }
 }
 }
 )
 .subscribe();
-
-return () => {
-supabase.removeChannel(channel);
-};
+return () => { supabase.removeChannel(channel); };
 }, [clientId, onMessagesRead]);
 
-// 🔥 Nachricht senden (Client → Coach)
+// 🔥 Nachricht senden (unverändert)
 const sendMessage = async () => {
 if (!newMessage.trim() || sending) return;
-
 setSending(true);
-
 const messageToSend = newMessage.trim();
 const tempMsg: ChatMessage = {
 id: Date.now(),
@@ -258,11 +241,9 @@ console.error("Fehler beim Senden der Nachricht (Client):", error.message);
 setMessages((prev) => prev.filter(msg => msg.id !== tempMsg.id));
 alert("Fehler beim Senden der Nachricht.");
 }
-
 setSending(false);
 };
 
-// Hilfsfunktion zum Abrufen des Datumsstrings für die Nachricht
 const getMessageDateString = (msg: ChatMessage) =>
 (msg.created_at || msg.timestamp || new Date().toISOString()).split('T')[0];
 
@@ -274,14 +255,15 @@ position: "fixed",
 top: 0,
 right: 0,
 width: isMobile ? "100%" : "420px",
-height: "100vh", // Hält die Gesamthöhe des Fensters fest
+height: "100vh",
 background: "#000",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-padding: isMobile ? "0 20px 20px 20px" : "20px",
+// NEU: Nur vertikales Padding oben und unten, um die fixierten Elemente zu umfassen
+padding: isMobile ? `0 ${HORIZONTAL_PADDING}px` : `${HORIZONTAL_PADDING}px`,
 display: "flex",
 flexDirection: "column",
-zIndex: 10003, // MAXIMIERTER Z-INDEX
-overflowY: 'hidden', // Nur der mittlere Nachrichtenbereich scrollt
+zIndex: 10003,
+overflowY: 'hidden',
 }}
 >
 {/* Kopfzeile (Statisch oben) */}
@@ -290,7 +272,6 @@ style={{
 display: 'flex',
 justifyContent: 'space-between',
 alignItems: 'center',
-// PADDING OBEN AUF MOBILE HIERHIN VERSCHOBEN (für Statusleiste)
 paddingTop: isMobile ? "40px" : "0",
 marginBottom: "10px",
 paddingBottom: "10px",
@@ -302,7 +283,6 @@ borderBottom: '1px solid rgba(255,255,255,0.1)',
 Chat mit Coach
 </h2>
 
-{/* Schließen-Button (Einfaches, gelbes '✕') */}
 <button
 onClick={onClose}
 style={{
@@ -324,10 +304,11 @@ lineHeight: "1",
 {/* Nachrichten Container - Füllt den gesamten MITTLEREN Bereich aus und SCROLLT */}
 <div
 style={{
-flex: 1, // FIX: Füllt den gesamten vertikalen Raum zwischen Kopf- und Fußzeile aus
-overflowY: "auto", // NUR DIESER BEREICH SCROLLT
+flex: 1,
+overflowY: "auto",
 paddingRight: "6px",
-marginBottom: "12px",
+// WICHTIG: Fügt unten Platz für die absolut positionierte Eingabeleiste hinzu
+paddingBottom: `${INPUT_BAR_HEIGHT}px`,
 WebkitOverflowScrolling: 'touch',
 }}
 >
@@ -341,7 +322,6 @@ const currentDate = getMessageDateString(msg);
 const prevMsg = messages[i - 1];
 const prevDate = prevMsg ? getMessageDateString(prevMsg) : null;
 
-// Nur Datumstrennlinie anzeigen, wenn sich das Datum ändert
 if (i === 0 || currentDate !== prevDate) {
 const dateToDisplay = new Date(currentDate);
 
@@ -367,7 +347,6 @@ fontWeight: 600,
 );
 }
 
-// Nachricht Bubble hinzufügen
 messageElements.push(
 <ChatBubble
 key={msg.id}
@@ -384,14 +363,24 @@ return messageElements;
 <div ref={bottomRef} />
 </div>
 
-{/* Eingabe und Senden-Button (Statisch unten) */}
+{/* Eingabe und Senden-Button (ABSOLUT POSITIONIERT UNTEN) */}
 <div
 style={{
+// FIX: Absolute Positionierung, um es garantiert unten zu halten
+position: 'absolute',
+bottom: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
+left: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
+right: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
+
 display: "flex",
 alignItems: "stretch",
 gap: "10px",
 paddingTop: '10px',
+// HINTERGRUND: Muss fest sein, um Text dahinter abzudecken
 background: '#000',
+
+// Höhe für den Nachrichten-Padding-Offset
+height: INPUT_BAR_HEIGHT - 10,
 }}
 >
 <input
