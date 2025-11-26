@@ -22,16 +22,16 @@ return (
 <div
 style={{
 marginBottom: "12px",
-textAlign: isClient ? "right" : "left",
+// FIX: Äußeres Div wird zu Flex-Container, um inneres Div zu schrumpfen
+display: 'flex',
+justifyContent: isClient ? "flex-end" : "flex-start", // Ausrichtung steuern
 }}
 >
 <div
 style={{
-// FIX: Das ist der Schlüssel: inline-block sorgt dafür, dass die Breite sich an den Inhalt anpasst
-display: "inline-block",
+// display: "inline-block" WURDE ENTFERNT
 padding: "10px 14px",
-// Max-Breite auf 75% für alle Geräte, um Platz für die Konversation zu lassen
-maxWidth: "75%",
+maxWidth: "75%", // Die maximale Breite
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -44,8 +44,6 @@ fontWeight: 500,
 boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 
 wordWrap: "break-word" as 'break-word',
-// Die Eigenschaft 'float' könnte hier helfen, falls 'inline-block' nicht richtig greift:
-// float: isClient ? 'right' : 'left',
 }}
 >
 <p style={{
@@ -268,7 +266,7 @@ borderBottom: '1px solid rgba(255,255,255,0.1)',
 Chat mit Coach
 </h2>
 
-{/* Schließen-Button (Einfaches, gelbes '✕' - so wie gewünscht) */}
+{/* Schließen-Button (Einfaches, gelbes '✕') */}
 <button
 onClick={onClose}
 style={{
