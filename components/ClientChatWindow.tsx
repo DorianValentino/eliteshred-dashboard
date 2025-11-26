@@ -10,7 +10,6 @@ markMessagesFromCoachAsRead,
 
 // =========================================================================
 // HILFSKOMPONENTE: CHAT BUBBLE
-// (unverändert)
 // =========================================================================
 
 const ChatBubble: React.FC<{ msg: ChatMessage; clientId: number; isMobile: boolean }> = ({ msg, clientId, isMobile }) => {
@@ -28,9 +27,9 @@ textAlign: isClient ? "right" : "left",
 >
 <div
 style={{
-display: "inline-block",
+display: "inline-block", // WICHTIG: Sorgt dafür, dass die Breite nur so groß wie der Inhalt ist!
 padding: "10px 14px",
-maxWidth: isMobile ? "85%" : "75%",
+maxWidth: isMobile ? "85%" : "75%", // Begrenzt die max. Breite
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -73,7 +72,6 @@ fontWeight: 400
 
 // =========================================================================
 // HILFSFUNKTION: DATUMSFORMATIERUNG
-// (unverändert)
 // =========================================================================
 const formatDateForDivider = (date: Date): string => {
 const today = new Date();
@@ -244,61 +242,40 @@ right: 0,
 width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
-// borderLeft: isMobile ? "none" : "2px solid #facc15", // BorderLeft nur für Desktop
+borderLeft: isMobile ? "none" : "2px solid #facc15",
 padding: "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
-// NEU: Keine goldene Linie oben auf Mobile
-borderTop: isMobile ? "none" : "2px solid #facc15",
 }}
 >
-{/* NEU: Flexbox-Container für Kopfzeile */}
-<div
-style={{
-display: 'flex',
-justifyContent: 'space-between',
-alignItems: 'center',
-marginBottom: "10px", // Etwas Abstand nach unten
-paddingBottom: "10px", // Innerer Abstand
-borderBottom: isMobile ? "1px solid rgba(255,255,255,0.1)" : "none", // Dezente Trennlinie auf Mobile
-}}
->
-<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0 }}>
+{/* Kopfzeile (Titel und Button) */}
+<div style={{ position: 'relative', marginBottom: "10px" }}>
+<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0, paddingRight: "40px" }}>
 Chat mit Coach
 </h2>
 
-{/* "✕" Button mit Kreis (JETZT IM FLEXBOX-CONTAINER) */}
+{/* Schließen-Button (Einfaches, gelbes '✕') */}
 <button
 onClick={onClose}
 style={{
-// position: "absolute", // Nicht mehr absolut positioniert
-// top: "15px", // Diese sind nicht mehr nötig
-// right: "15px", // da es im Flexbox ist.
-
-display: 'flex',
-alignItems: 'center',
-justifyContent: 'center',
-width: '30px',
-height: '30px',
-borderRadius: '50%',
-fontSize: "16px",
-fontWeight: 700,
-
+position: "absolute",
+top: "0",
+right: "0",
 color: "#facc15",
-background: "transparent",
-border: "1px solid #facc15",
-
+fontSize: "22px",
+background: "none",
+border: "none",
+padding: "0",
 cursor: "pointer",
 zIndex: 10,
 boxShadow: "none",
-transition: "all 0.2s",
+lineHeight: "1",
 }}
 >
 ✕
 </button>
 </div>
-
 
 {/* Nachrichten Container */}
 <div
