@@ -27,6 +27,7 @@ ClientID: number;
 Name: string;
 Ziel: string | null;
 Status: string | null;
+Start?: string | null;
 Plan_Mo?: string | null;
 Plan_Di?: string | null;
 Plan_Mi?: string | null;
@@ -56,14 +57,34 @@ const day = String(now.getDate()).padStart(2, "0");
 return `${year}-${month}-${day}`;
 };
 
+// ======================
+// NEUER CUSTOM HOOK FÜR WINDOW WIDTH
+// ======================
+const useWindowWidth = () => {
+const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 769);
+
+useEffect(() => {
+if (typeof window === 'undefined') return;
+
+const handleResize = () => setWidth(window.innerWidth);
+window.addEventListener('resize', handleResize);
+return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+return width;
+};
+
 export default function DashboardPage() {
 const router = useRouter();
+const windowWidth = useWindowWidth(); // <-- NEU: Hook zur Breitenmessung
+const isMobile = windowWidth < 768; // <-- NEU: Boolesche Variable für Responsivität
 
 // session = eingeloggt E-Mail (aus localStorage)
 const [session, setSession] = useState<string | null>(null);
 const [clientData, setClientData] = useState<ClientData | null>(null);
 const [trackingEntries, setTrackingEntries] = useState<TrackingEntry[]>([]);
 const [isLoadingClient, setIsLoadingClient] = useState(true);
+const [startDate, setStartDate] = useState<string | null>(null);
 
 const [gewicht, setGewicht] = useState("");
 const [training, setTraining] = useState("");
@@ -263,6 +284,7 @@ return;
 
 const client = data as ClientData;
 setClientData(client);
+setStartDate(client.Start ?? null);
 
 if ((data as any).ClientID) {
 setClientId((data as any).ClientID as number);
@@ -476,7 +498,7 @@ weight: parseFloat(e.Gewicht as string),
 .sort((a, b) => {
 if (!a.date || !b.date) return 0;
 return new Date(a.date).getTime() - new Date(b.date).getTime();
-});
+})
 
 const hasWeightData = weightPoints.length > 0;
 const minWeight = hasWeightData
@@ -486,7 +508,8 @@ const maxWeight = hasWeightData
 ? Math.max(...weightPoints.map((p) => p.weight))
 : 0;
 
-const chartWidth = 520;
+// ANPASSUNG: Feste Breite für die SVG-Berechnung
+const chartWidth = 350;
 const chartHeight = 240;
 const padding = 45;
 
@@ -510,6 +533,90 @@ return `${x},${y}`;
 })
 .join(" ");
 };
+
+// =======================================
+// WOCHENGRENZEN: Linie bei jedem Wochenwechsel
+// =======================================
+const weekBoundaries = (() => {
+if (!hasWeightData || !startDate || weightPoints.length < 2) return [];
+
+const result: { index: number; label: string; xPos: number }[] = [];
+const s = new Date(startDate);
+s.setHours(0, 0, 0, 0); // Startdatum um 00:00:00
+
+const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+// Die Zeit des ersten Dateneintrags
+const firstDataTime = new Date(weightPoints[0].date!).getTime();
+
+// Finde die erste Woche, die nach dem ersten Dateneintrag beginnt
+let weekIndex = 1;
+let nextWeekStart = new Date(s).getTime() + weekMs;
+
+// Springe zu der Woche, die den ersten Eintrag umfasst oder folgt
+while (nextWeekStart <= firstDataTime) {
+nextWeekStart += weekMs;
+weekIndex++;
+}
+
+// Gehe durch alle Datenpunkte, um die vertikalen Linien zu platzieren
+for (let i = 0; i < weightPoints.length; i++) {
+const currentDataTime = new Date(weightPoints[i].date!).getTime();
+
+// Prüfe, ob die nächste Wochenlinie zwischen dem aktuellen und dem vorherigen Punkt liegt (oder genau auf dem aktuellen liegt)
+if (
+i > 0 &&
+currentDataTime >= nextWeekStart &&
+new Date(weightPoints[i - 1].date!).getTime() < nextWeekStart
+) {
+// Berechne die x-Position für die Wochenlinie
+const indexBefore = i - 1;
+const indexCurrent = i;
+
+const dateBefore = new Date(weightPoints[indexBefore].date!).getTime();
+const dateCurrent = currentDataTime;
+
+// Anteil des Weges, den der Wochenanfang zwischen den zwei Datenpunkten zurückgelegt hat
+const interpolationFactor = (nextWeekStart - dateBefore) / (dateCurrent - dateBefore);
+
+const xBefore = padding + ((chartWidth - 2 * padding) * (weightPoints.length === 1 ? 0.5 : indexBefore / (weightPoints.length - 1)));
+const xCurrent = padding + ((chartWidth - 2 * padding) * (weightPoints.length === 1 ? 0.5 : indexCurrent / (weightPoints.length - 1)));
+
+const xPos = xBefore + (xCurrent - xBefore) * interpolationFactor;
+
+result.push({
+index: i,
+label: `Woche ${weekIndex}`,
+xPos: xPos,
+});
+
+// Berechne den Start der nächsten Woche
+nextWeekStart += weekMs;
+weekIndex++;
+}
+}
+
+return result;
+})();
+
+// =========================
+// WEEK INDEX BERECHNEN (dynamisch ab Startdatum)
+// =========================
+const getWeekFromStartDate = (entryDate: string | null): number => {
+if (!startDate || !entryDate) return 0;
+
+const s = new Date(startDate);
+const d = new Date(entryDate);
+
+const diffDays = Math.floor(
+(d.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)
+);
+
+if (diffDays < 0) return 0;
+
+return Math.floor(diffDays / 7); // 0,1,2,...
+};
+
 
 // =========================
 // WOCHENPLAN / FARBE
@@ -805,7 +912,8 @@ marginLeft: 6,
 <div
 style={{
 display: "grid",
-gridTemplateColumns: "1.2fr 1fr",
+// KORREKTUR: Verwende die isMobile Variable, um die Grid-Spalten dynamisch zu setzen
+gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1.2fr) minmax(0, 1fr)",
 gap: "24px",
 }}
 >
@@ -930,7 +1038,8 @@ padding: "16px",
 borderRadius: "12px",
 background: "#050608",
 border: "1px solid rgba(255,215,0,0.18)",
-marginTop: "32px",
+marginTop: isMobile ? "0px" : "32px",
+// overflowX: "hidden" hier entfernt, damit der innere div scrollen kann
 }}
 >
 <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>
@@ -938,12 +1047,51 @@ Gewichtsentwicklung
 </h2>
 
 {hasWeightData ? (
-<div style={{ overflowX: "auto" }}>
+// FIX: Dieser innere div ermöglicht das Scrollen der SVG auf kleinen Bildschirmen
+<div
+style={{
+overflowX: isMobile ? "auto" : "visible",
+minWidth: 0,
+paddingBottom: isMobile ? "20px" : "0",
+}}
+>
 <svg
 width={chartWidth}
 height={chartHeight}
-style={{ maxWidth: "100%", background: "#050608" }}
+style={{
+// Stellt sicher, dass das Chart immer mindestens 350px breit ist
+minWidth: `${chartWidth}px`,
+maxWidth: "100%",
+height: "auto",
+background: "#050608"
+}}
 >
+{/* Wochen-Grenzen Linien */}
+{weekBoundaries.map((boundary, index) => (
+<g key={`week-${index}`}>
+<line
+x1={boundary.xPos}
+y1={padding}
+x2={boundary.xPos}
+y2={chartHeight - padding}
+stroke="#FFD700"
+strokeWidth={1}
+strokeDasharray="4 4"
+opacity={0.3}
+/>
+<text
+x={boundary.xPos}
+y={chartHeight - padding + 20}
+fontSize="10"
+textAnchor="middle"
+fill="#ffffff"
+opacity={0.8}
+>
+{boundary.label}
+</text>
+</g>
+))}
+
 {/* Achsen */}
 <line
 x1={padding}
@@ -992,7 +1140,7 @@ return (
 <text
 x={x}
 y={y - 8}
-fontSize="10"
+fontSize="9"
 textAnchor="middle"
 fill="#ffffff"
 >
@@ -1021,29 +1169,6 @@ fill="#ffffff"
 >
 {minWeight.toFixed(1)} kg
 </text>
-
-{/* X-Achse */}
-{weightPoints.map((p, index) => {
-const x =
-padding +
-((chartWidth - 2 * padding) *
-(weightPoints.length === 1
-? 0.5
-: index / (weightPoints.length - 1)));
-
-return (
-<text
-key={index}
-x={x}
-y={chartHeight - padding + 18}
-fontSize="9"
-textAnchor="middle"
-fill="#ffffff"
->
-{p.date}
-</text>
-);
-})}
 </svg>
 </div>
 ) : (
@@ -1207,76 +1332,78 @@ Noch keine Einträge.
 
 {/* FOOTER */}
 <div
-  style={{
-    marginTop: "30px",
-    paddingTop: "16px",
-    borderTop: "1px solid rgba(31,41,55,0.7)",
-  }}
+style={{
+marginTop: "30px",
+paddingTop: "16px",
+borderTop: "1px solid rgba(31,41,55,0.7)",
+}}
 >
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: "12px",
-    }}
-  >
-    {/* LEFT TEXT */}
-    <span
-      style={{
-        fontSize: "14px",
-        color: "#9ca3af",
-        whiteSpace: "nowrap",
-      }}
-    >
-      EliteShred Client Dashboard
-    </span>
+<div
+style={{
+display: "flex",
+justifyContent: "space-between",
+alignItems: "center",
+flexWrap: "wrap",
+gap: "12px",
+}}
+>
+{/* LEFT TEXT */}
+<span
+style={{
+fontSize: "14px",
+color: "#9ca3af",
+whiteSpace: "nowrap",
 
-    {/* RIGHT BUTTONS WRAPPER */}
-    <div
-      style={{
-        display: "flex",
-        gap: "10px",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <button
-        onClick={() => router.push("/client-info")}
-        style={{
-          padding: "8px 14px",
-          borderRadius: "999px",
-          border: "1px solid rgba(255,215,0,0.45)",
-          background: "transparent",
-          color: "#facc15",
-          fontWeight: 500,
-          cursor: "pointer",
-          fontSize: "13px",
-          boxShadow: "none",
-        }}
-      >
-        Wie funktioniert das Dashboard?
-      </button>
 
-      <button
-        onClick={() => router.push("/hilfe")}
-        style={{
-          padding: "8px 14px",
-          borderRadius: "999px",
-          border: "1px solid rgba(255,215,0,0.45)",
-          background: "transparent",
-          color: "#facc15",
-          fontWeight: 500,
-          cursor: "pointer",
-          fontSize: "13px",
-          boxShadow: "none",
-        }}
-      >
-        Hilfe & Support
-      </button>
-    </div>
-  </div>
+}}
+>
+EliteShred Client Dashboard
+</span>
+
+{/* RIGHT BUTTONS WRAPPER */}
+<div
+style={{
+display: "flex",
+gap: "10px",
+alignItems: "center",
+flexWrap: "wrap",
+}}
+>
+<button
+onClick={() => router.push("/client-info")}
+style={{
+padding: "8px 14px",
+borderRadius: "999px",
+border: "1px solid rgba(255,215,0,0.45)",
+background: "transparent",
+color: "#facc15",
+fontWeight: 500,
+cursor: "pointer",
+fontSize: "13px",
+boxShadow: "none",
+}}
+>
+Wie funktioniert das Dashboard?
+</button>
+
+<button
+onClick={() => router.push("/hilfe")}
+style={{
+padding: "8px 14px",
+borderRadius: "999px",
+border: "1px solid rgba(255,215,0,0.45)",
+background: "transparent",
+color: "#facc15",
+fontWeight: 500,
+cursor: "pointer",
+fontSize: "13px",
+boxShadow: "none",
+}}
+>
+Hilfe & Support
+</button>
+</div>
+</div>
 </div>
 </div>
 

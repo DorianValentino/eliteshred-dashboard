@@ -929,8 +929,8 @@ export default function UploadsPage() {
                 color: "#9ca3af",
               }}
             >
-              Hinweis: Form Check ist primär für <strong>Sonntag</strong>
-              gedacht. Dein Coach nutzt diese Bilder für Langzeit-Updates.
+              Hinweis: Form Check ist primär für <strong>Sonntag</strong>  
+               gedacht. Dein Coach nutzt diese Bilder für Langzeit-Updates.
             </p>
           </section>
         </div>
