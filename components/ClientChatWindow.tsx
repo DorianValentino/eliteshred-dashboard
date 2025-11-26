@@ -29,7 +29,7 @@ textAlign: isClient ? "right" : "left",
 style={{
 display: "inline-block", // WICHTIG: Sorgt dafür, dass die Breite nur so groß wie der Inhalt ist!
 padding: "10px 14px",
-maxWidth: isMobile ? "85%" : "75%", // Begrenzt die max. Breite
+maxWidth: isMobile ? "80%" : "75%", // MAXIMALE BREITE AUF MOBILE AUF 80% REDUZIERT
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -243,17 +243,32 @@ width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-padding: "20px",
+padding: "20px", // Hält das Padding als Default
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
 }}
 >
-{/* Kopfzeile (Titel und Button) */}
-<div style={{ position: 'relative', marginBottom: "10px" }}>
+{/* Kopfzeile (Titel und Button) mit festem Hintergrund und Padding */}
+<div
+style={{
+position: 'relative',
+marginBottom: "10px",
+paddingBottom: "10px",
+// Fix: Setze Hintergrund und Rand explizit
+background: 'rgba(0,0,0,0.97)',
+borderBottom: '1px solid rgba(255,255,255,0.1)',
+// Entferne das obere Padding vom Container für Full-Width auf Mobile
+padding: isMobile ? '0 0 10px 0' : '0',
+
+}}
+>
+{/* Füge ein inneres Div hinzu, um den Titel links zu positionieren */}
+<div style={{ padding: isMobile ? '0' : '0 40px 0 0', display: 'flex', alignItems: 'center' }}>
 <h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0, paddingRight: "40px" }}>
 Chat mit Coach
 </h2>
+</div>
 
 {/* Schließen-Button (Einfaches, gelbes '✕') */}
 <button
