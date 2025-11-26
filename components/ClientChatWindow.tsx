@@ -27,9 +27,11 @@ textAlign: isClient ? "right" : "left",
 >
 <div
 style={{
-display: "inline-block", // WICHTIG: Sorgt dafür, dass die Breite nur so groß wie der Inhalt ist!
+// FIX: Das ist der Schlüssel: inline-block sorgt dafür, dass die Breite sich an den Inhalt anpasst
+display: "inline-block",
 padding: "10px 14px",
-maxWidth: isMobile ? "80%" : "75%", // MAXIMALE BREITE AUF MOBILE AUF 80% REDUZIERT
+// Max-Breite auf 75% für alle Geräte, um Platz für die Konversation zu lassen
+maxWidth: "75%",
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -42,6 +44,8 @@ fontWeight: 500,
 boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 
 wordWrap: "break-word" as 'break-word',
+// Die Eigenschaft 'float' könnte hier helfen, falls 'inline-block' nicht richtig greift:
+// float: isClient ? 'right' : 'left',
 }}
 >
 <p style={{
@@ -243,40 +247,31 @@ width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-padding: "20px", // Hält das Padding als Default
+padding: isMobile ? "40px 20px 20px 20px" : "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
 }}
 >
-{/* Kopfzeile (Titel und Button) mit festem Hintergrund und Padding */}
+{/* Kopfzeile (Titel und Button) */}
 <div
 style={{
-position: 'relative',
+display: 'flex',
+justifyContent: 'space-between',
+alignItems: 'center',
 marginBottom: "10px",
 paddingBottom: "10px",
-// Fix: Setze Hintergrund und Rand explizit
-background: 'rgba(0,0,0,0.97)',
 borderBottom: '1px solid rgba(255,255,255,0.1)',
-// Entferne das obere Padding vom Container für Full-Width auf Mobile
-padding: isMobile ? '0 0 10px 0' : '0',
-
 }}
 >
-{/* Füge ein inneres Div hinzu, um den Titel links zu positionieren */}
-<div style={{ padding: isMobile ? '0' : '0 40px 0 0', display: 'flex', alignItems: 'center' }}>
-<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0, paddingRight: "40px" }}>
+<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0 }}>
 Chat mit Coach
 </h2>
-</div>
 
-{/* Schließen-Button (Einfaches, gelbes '✕') */}
+{/* Schließen-Button (Einfaches, gelbes '✕' - so wie gewünscht) */}
 <button
 onClick={onClose}
 style={{
-position: "absolute",
-top: "0",
-right: "0",
 color: "#facc15",
 fontSize: "22px",
 background: "none",
