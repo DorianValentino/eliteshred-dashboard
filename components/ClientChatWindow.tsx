@@ -22,16 +22,14 @@ return (
 <div
 style={{
 marginBottom: "12px",
-// FIX: Äußeres Div wird zu Flex-Container, um inneres Div zu schrumpfen und auszurichten
-display: 'flex',
-justifyContent: isClient ? "flex-end" : "flex-start", // Steuert die Ausrichtung (links/rechts)
+textAlign: isClient ? "right" : "left",
 }}
 >
 <div
 style={{
-// display: "inline-block" wurde entfernt, Flexbox übernimmt nun die Breitenanpassung
+display: "inline-block",
 padding: "10px 14px",
-maxWidth: "75%", // Die maximale Breite bleibt 75%
+maxWidth: isMobile ? "85%" : "75%",
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -43,9 +41,8 @@ color: isClient ? "#000" : "#fff",
 fontWeight: 500,
 boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 
+// Umbruch-Einstellungen für lange Wörter
 wordWrap: "break-word" as 'break-word',
-// NEU: Stellt sicher, dass die Bubble keinen unnötigen Leerraum um den Text lässt.
-flexShrink: 1,
 }}
 >
 <p style={{
@@ -71,26 +68,6 @@ fontWeight: 400
 </div>
 </div>
 );
-};
-
-
-// =========================================================================
-// HILFSFUNKTION: DATUMSFORMATIERUNG
-// =========================================================================
-const formatDateForDivider = (date: Date): string => {
-const today = new Date();
-const yesterday = new Date(today);
-yesterday.setDate(today.getDate() - 1);
-
-const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
-
-if (isSameDay(date, today)) {
-return "Heute";
-}
-if (isSameDay(date, yesterday)) {
-return "Gestern";
-}
-return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
 
@@ -128,26 +105,6 @@ checkMobile();
 window.addEventListener('resize', checkMobile);
 return () => window.removeEventListener('resize', checkMobile);
 }, []);
-
-// 🔥 NEU: Scroll-Lock für den Body, wenn das Chatfenster geöffnet ist
-useEffect(() => {
-// Nur auf Mobilgeräten und im Browser anwenden
-if (typeof window !== 'undefined' && isMobile) {
-document.body.style.overflow = 'hidden';
-// Optional: Zusätzliches Fix für iOS Over-Scrolling
-document.body.style.position = 'fixed';
-document.body.style.width = '100%';
-}
-
-return () => {
-if (typeof window !== 'undefined' && isMobile) {
-document.body.style.overflow = ''; // Stellt den Standard-Scroll wieder her
-document.body.style.position = '';
-document.body.style.width = '';
-}
-};
-}, [isMobile]);
-
 
 const scrollToBottom = () => {
 setTimeout(() => {
@@ -252,11 +209,6 @@ alert("Fehler beim Senden der Nachricht.");
 setSending(false);
 };
 
-// Hilfsfunktion zum Abrufen des Datumsstrings für die Nachricht
-const getMessageDateString = (msg: ChatMessage) =>
-(msg.created_at || msg.timestamp || new Date().toISOString()).split('T')[0];
-
-
 return (
 <div
 style={{
@@ -267,60 +219,42 @@ width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-padding: isMobile ? "40px 20px 20px 20px" : "20px",
+padding: "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
-// Wichtig: Überlauf des Chat-Fensters selbst zulassen
-overflowY: 'auto',
-WebkitOverflowScrolling: 'touch', // Verbessert das native iOS-Scrolling
 }}
 >
-{/* Kopfzeile (Titel und Button) */}
-<div
-style={{
-display: 'flex',
-justifyContent: 'space-between',
-alignItems: 'center',
-marginBottom: "10px",
-paddingBottom: "10px",
-borderBottom: '1px solid rgba(255,255,255,0.1)',
-// Fixiert die Kopfzeile, damit sie nicht mitscrollt
-position: 'sticky',
-top: 0,
-zIndex: 10,
-background: 'rgba(0,0,0,0.97)', // Stellt sicher, dass der Hintergrund undurchsichtig ist
-}}
->
-<h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0 }}>
-Chat mit Coach
-</h2>
-
-{/* Schließen-Button (Einfaches, gelbes '✕') */}
+{/* X-Button: NEUE, DEZENTE STYLES */}
 <button
 onClick={onClose}
 style={{
+position: "absolute",
+top: "15px",
+right: "15px",
 color: "#facc15",
-fontSize: "22px",
+fontSize: "18px", // Dezenter
 background: "none",
 border: "none",
 padding: "0",
 cursor: "pointer",
 zIndex: 10,
-boxShadow: "none",
+boxShadow: "none", // Schatten entfernen
 lineHeight: "1",
 }}
 >
 ✕
 </button>
-</div>
+
+<h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>
+Chat mit Coach
+</h2>
 
 {/* Nachrichten Container */}
 <div
 style={{
-// Flex 1 entfernt hier den Scroll-Konflikt, da der Hauptcontainer jetzt scrollbar ist
-flexGrow: 1,
-overflowY: "visible", // Scrollen passiert jetzt im Hauptcontainer
+flex: 1,
+overflowY: "auto",
 paddingRight: "6px",
 marginBottom: "12px",
 }}
@@ -328,70 +262,21 @@ marginBottom: "12px",
 {loading ? (
 <p style={{ color: "#aaa" }}>Lade Nachrichten...</p>
 ) : (
-messages.map((msg, i) => {
-const messageElements = [];
-
-const currentDate = getMessageDateString(msg);
-const prevMsg = messages[i - 1];
-const prevDate = prevMsg ? getMessageDateString(prevMsg) : null;
-
-// Nur Datumstrennlinie anzeigen, wenn sich das Datum ändert
-if (i === 0 || currentDate !== prevDate) {
-const dateToDisplay = new Date(currentDate);
-
-messageElements.push(
-<div
-key={`date-${msg.id}`}
-style={{
-display: 'flex',
-alignItems: 'center',
-margin: '20px 0 20px 0',
-color: '#9ca3af',
-fontSize: '11px',
-textTransform: 'uppercase',
-fontWeight: 600,
-}}
->
-<div style={{ flexGrow: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-<span style={{ margin: '0 10px', whiteSpace: 'nowrap' }}>
-{formatDateForDivider(dateToDisplay)}
-</span>
-<div style={{ flexGrow: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-</div>
-);
-}
-
-// Nachricht Bubble hinzufügen
-messageElements.push(
+messages.map((msg) => (
 <ChatBubble
 key={msg.id}
 msg={msg}
 clientId={clientId}
 isMobile={isMobile}
 />
-);
-
-return messageElements;
-})
+))
 )}
 
 <div ref={bottomRef} />
 </div>
 
 {/* Eingabe und Senden-Button */}
-<div
-style={{
-display: "flex",
-alignItems: "stretch",
-gap: "10px",
-// Fixiert die Eingabe unten
-paddingTop: '10px',
-background: 'rgba(0,0,0,0.97)',
-position: 'sticky',
-bottom: 0,
-zIndex: 10
-}}
->
+<div style={{ display: "flex", alignItems: "stretch", gap: "10px" }}>
 <input
 value={newMessage}
 onChange={(e) => setNewMessage(e.target.value)}
