@@ -45,7 +45,7 @@ boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 wordWrap: "break-word" as 'break-word',
 display: 'block',
 minWidth: 0,
-width: 'fit-content' as 'fit-content', // Erzwingt Breite = Inhalt
+width: 'fit-content' as 'fit-content',
 }}
 >
 <p style={{
@@ -129,11 +129,14 @@ window.addEventListener('resize', checkMobile);
 return () => window.removeEventListener('resize', checkMobile);
 }, []);
 
-// 🔥 Scroll-Lock für den Body (ZUSÄTZLICH mit Scroll-Position Fix)
+// 🔥 Scroll-Lock für den Body (FINALER FIX: Behält Scroll-Position des Dashboards)
 useEffect(() => {
 if (typeof window !== 'undefined' && isMobile) {
-// Speichert die aktuelle Scroll-Position des Dashboards
-document.body.style.top = `-${window.scrollY}px`;
+// Speichert die aktuelle Scroll-Position des Dashboards, bevor wir fixieren
+const scrollY = window.scrollY;
+document.body.style.top = `-${scrollY}px`;
+
+// Verhindert das Scrollen des Dashboard-Hintergrunds
 document.body.style.overflow = 'hidden';
 document.body.style.position = 'fixed';
 document.body.style.width = '100%';
@@ -141,13 +144,15 @@ document.body.style.width = '100%';
 
 return () => {
 if (typeof window !== 'undefined' && isMobile) {
+// Stellt die vorherige Scroll-Position wieder her, wenn die Komponente entfernt wird
 const scrollY = document.body.style.top;
+
 document.body.style.overflow = '';
 document.body.style.position = '';
 document.body.style.width = '';
 document.body.style.top = ''; // Löscht den Top-Wert
 
-// Stellt die vorherige Scroll-Position wieder her
+// Stellt die Scroll-Position wieder her
 window.scrollTo(0, parseInt(scrollY || '0') * -1);
 }
 };
@@ -269,25 +274,23 @@ position: "fixed",
 top: 0,
 right: 0,
 width: isMobile ? "100%" : "420px",
-height: "100vh",
+height: "100vh", // Hält die Gesamthöhe des Fensters fest
 background: "#000",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-// FIX: Padding oben entfernt (jetzt in der Kopfzeile)
 padding: isMobile ? "0 20px 20px 20px" : "20px",
 display: "flex",
 flexDirection: "column",
-// MAXIMIERTER Z-INDEX
-zIndex: 10003,
-overflowY: 'hidden',
+zIndex: 10003, // MAXIMIERTER Z-INDEX
+overflowY: 'hidden', // Nur der mittlere Nachrichtenbereich scrollt
 }}
 >
-{/* Kopfzeile (Titel und Button) */}
+{/* Kopfzeile (Statisch oben) */}
 <div
 style={{
 display: 'flex',
 justifyContent: 'space-between',
 alignItems: 'center',
-// FIX: PADDING OBEN AUF MOBILE HIERHIN VERSCHOBEN (für Statusleiste)
+// PADDING OBEN AUF MOBILE HIERHIN VERSCHOBEN (für Statusleiste)
 paddingTop: isMobile ? "40px" : "0",
 marginBottom: "10px",
 paddingBottom: "10px",
@@ -321,8 +324,8 @@ lineHeight: "1",
 {/* Nachrichten Container - Füllt den gesamten MITTLEREN Bereich aus und SCROLLT */}
 <div
 style={{
-flex: 1,
-overflowY: "auto",
+flex: 1, // FIX: Füllt den gesamten vertikalen Raum zwischen Kopf- und Fußzeile aus
+overflowY: "auto", // NUR DIESER BEREICH SCROLLT
 paddingRight: "6px",
 marginBottom: "12px",
 WebkitOverflowScrolling: 'touch',
@@ -381,7 +384,7 @@ return messageElements;
 <div ref={bottomRef} />
 </div>
 
-{/* Eingabe und Senden-Button */}
+{/* Eingabe und Senden-Button (Statisch unten) */}
 <div
 style={{
 display: "flex",
