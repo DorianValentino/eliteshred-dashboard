@@ -8,11 +8,99 @@ loadMessagesForClient,
 markMessagesFromCoachAsRead,
 } from "@/lib/chatMessages";
 
+// =========================================================================
+// HILFSKOMPONENTE: CHAT BUBBLE
+// (unverändert)
+// =========================================================================
+
+const ChatBubble: React.FC<{ msg: ChatMessage; clientId: number; isMobile: boolean }> = ({ msg, clientId, isMobile }) => {
+const isClient = msg.sender === "client";
+
+const dateString = (msg.created_at || msg.timestamp || new Date().toISOString()) as string;
+const time = new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+return (
+<div
+style={{
+marginBottom: "12px",
+textAlign: isClient ? "right" : "left",
+}}
+>
+<div
+style={{
+display: "inline-block",
+padding: "10px 14px",
+maxWidth: isMobile ? "85%" : "75%",
+borderRadius: "18px",
+borderTopLeftRadius: isClient ? "18px" : "4px",
+borderTopRightRadius: isClient ? "4px" : "18px",
+
+background: isClient
+? "linear-gradient(90deg, #facc15 0%, #eab308 100%)"
+: "rgba(255,255,255,0.07)",
+color: isClient ? "#000" : "#fff",
+fontWeight: 500,
+boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
+
+wordWrap: "break-word" as 'break-word',
+}}
+>
+<p style={{
+margin: 0,
+fontSize: "15px",
+whiteSpace: "pre-wrap",
+wordBreak: 'break-word',
+}}>
+{msg.message}
+</p>
+<span
+style={{
+fontSize: "10px",
+color: isClient ? "rgba(0,0,0,0.6)" : "#9ca3af",
+marginTop: "4px",
+display: "block",
+textAlign: "right",
+fontWeight: 400
+}}
+>
+{time}
+</span>
+</div>
+</div>
+);
+};
+
+
+// =========================================================================
+// HILFSFUNKTION: DATUMSFORMATIERUNG
+// (unverändert)
+// =========================================================================
+const formatDateForDivider = (date: Date): string => {
+const today = new Date();
+const yesterday = new Date(today);
+yesterday.setDate(today.getDate() - 1);
+
+const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
+
+if (isSameDay(date, today)) {
+return "Heute";
+}
+if (isSameDay(date, yesterday)) {
+return "Gestern";
+}
+return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+
+// =========================================================================
+// HAUPTKOMPONENTE: CLIENT CHAT WINDOW
+// =========================================================================
+
 type ClientChatWindowProps = {
 clientId: number;
 clientEmail: string;
 onClose: () => void;
-onMessagesRead?: () => void; // <-- wichtig für das Badge
+onMessagesRead?: () => void;
 };
 
 export default function ClientChatWindow({
@@ -25,13 +113,26 @@ const [messages, setMessages] = useState<ChatMessage[]>([]);
 const [newMessage, setNewMessage] = useState("");
 const [loading, setLoading] = useState(false);
 const [sending, setSending] = useState(false);
+const [isMobile, setIsMobile] = useState(false);
 
 const bottomRef = useRef<HTMLDivElement | null>(null);
 
+// Hook zur Erkennung der Bildschirmgröße für Responsivität
+useEffect(() => {
+const checkMobile = () => {
+setIsMobile(window.innerWidth < 768);
+};
+checkMobile();
+window.addEventListener('resize', checkMobile);
+return () => window.removeEventListener('resize', checkMobile);
+}, []);
+
 const scrollToBottom = () => {
+setTimeout(() => {
 if (bottomRef.current) {
 bottomRef.current.scrollIntoView({ behavior: "smooth" });
 }
+}, 100);
 };
 
 // 🔥 Nachrichten laden + alle Coach-Nachrichten als gelesen markieren
@@ -42,15 +143,12 @@ const msgs = await loadMessagesForClient(clientId);
 setMessages(msgs);
 setLoading(false);
 
-// alles vom Coach als gelesen markieren
 await markMessagesFromCoachAsRead(clientId);
 
-// Badge im Dashboard zurücksetzen
 if (onMessagesRead) {
 onMessagesRead();
 }
 
-// nach dem Laden nach unten scrollen
 scrollToBottom();
 };
 
@@ -72,18 +170,15 @@ filter: `client_id=eq.${clientId}`,
 async (payload) => {
 const msg = payload.new as ChatMessage;
 
-// Nur Coach → Client anzeigen
 if (msg.sender === "coach") {
 setMessages((prev) => [...prev, msg]);
 scrollToBottom();
 
-// Direkt als gelesen markieren
 await supabase
 .from("messages")
 .update({ is_read: true })
 .eq("id", msg.id);
 
-// Badge resetten
 if (onMessagesRead) {
 onMessagesRead();
 }
@@ -99,39 +194,46 @@ supabase.removeChannel(channel);
 
 // 🔥 Nachricht senden (Client → Coach)
 const sendMessage = async () => {
-if (!newMessage.trim()) return;
+if (!newMessage.trim() || sending) return;
 
 setSending(true);
+
+const messageToSend = newMessage.trim();
+const tempMsg: ChatMessage = {
+id: Date.now(),
+client_id: clientId,
+sender: "client",
+receiver_email: null,
+message: messageToSend,
+timestamp: new Date().toISOString(),
+created_at: new Date().toISOString(),
+is_read: false,
+};
+setMessages((prev) => [...prev, tempMsg]);
+setNewMessage("");
+scrollToBottom();
 
 const { error } = await supabase.from("messages").insert({
 client_id: clientId,
 sender: "client",
 receiver_email: null,
-message: newMessage,
-is_read: false, // für den Coach ist diese Nachricht erstmal ungelesen
+message: messageToSend,
+is_read: false,
 });
 
-if (!error) {
-const newMsg: ChatMessage = {
-id: Date.now(),
-client_id: clientId,
-sender: "client",
-receiver_email: null,
-message: newMessage,
-timestamp: new Date().toISOString(),
-created_at: new Date().toISOString(),
-is_read: false,
-};
-
-setMessages((prev) => [...prev, newMsg]);
-setNewMessage("");
-scrollToBottom();
-} else {
+if (error) {
 console.error("Fehler beim Senden der Nachricht (Client):", error.message);
+setMessages((prev) => prev.filter(msg => msg.id !== tempMsg.id));
+alert("Fehler beim Senden der Nachricht.");
 }
 
 setSending(false);
 };
+
+// Hilfsfunktion zum Abrufen des Datumsstrings für die Nachricht
+const getMessageDateString = (msg: ChatMessage) =>
+(msg.created_at || msg.timestamp || new Date().toISOString()).split('T')[0];
+
 
 return (
 <div
@@ -139,28 +241,45 @@ style={{
 position: "fixed",
 top: 0,
 right: 0,
-width: "420px",
+width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "rgba(0,0,0,0.97)",
-borderLeft: "2px solid #facc15",
+borderLeft: isMobile ? "none" : "2px solid #facc15",
 padding: "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
 }}
 >
-{/* X-Button */}
+{/* "✕" Button mit Kreis: STINKNORMALER KREIS */}
 <button
 onClick={onClose}
 style={{
 position: "absolute",
 top: "15px",
 right: "15px",
-color: "#facc15",
-fontSize: "22px",
-background: "none",
-border: "none",
+
+display: 'flex',
+alignItems: 'center',
+justifyContent: 'center',
+width: '30px',
+height: '30px',
+borderRadius: '50%', // Macht es rund
+fontSize: "16px",
+fontWeight: 700,
+
+color: "#facc15", // Farbe des X
+background: "transparent", // Hintergrund ist transparent
+border: "1px solid #facc15", // Sauberer gelber Kreis als Rand
+
 cursor: "pointer",
+zIndex: 10,
+boxShadow: "none",
+transition: "all 0.2s",
+// Hover-Effekt (optional, aber gut für UX)
+// ':hover': {
+// background: 'rgba(250, 204, 21, 0.1)',
+// },
 }}
 >
 ✕
@@ -170,7 +289,7 @@ cursor: "pointer",
 Chat mit Coach
 </h2>
 
-{/* Nachrichten */}
+{/* Nachrichten Container */}
 <div
 style={{
 flex: 1,
@@ -182,63 +301,93 @@ marginBottom: "12px",
 {loading ? (
 <p style={{ color: "#aaa" }}>Lade Nachrichten...</p>
 ) : (
-messages.map((msg) => (
+messages.map((msg, i) => {
+const messageElements = [];
+
+const currentDate = getMessageDateString(msg);
+const prevMsg = messages[i - 1];
+const prevDate = prevMsg ? getMessageDateString(prevMsg) : null;
+
+// Nur Datumstrennlinie anzeigen, wenn sich das Datum ändert
+if (i === 0 || currentDate !== prevDate) {
+const dateToDisplay = new Date(currentDate);
+
+messageElements.push(
 <div
+key={`date-${msg.id}`}
+style={{
+display: 'flex',
+alignItems: 'center',
+margin: '20px 0 20px 0',
+color: '#9ca3af',
+fontSize: '11px',
+textTransform: 'uppercase',
+fontWeight: 600,
+}}
+>
+<div style={{ flexGrow: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+<span style={{ margin: '0 10px', whiteSpace: 'nowrap' }}>
+{formatDateForDivider(dateToDisplay)}
+</span>
+<div style={{ flexGrow: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+</div>
+);
+}
+
+// Nachricht Bubble hinzufügen
+messageElements.push(
+<ChatBubble
 key={msg.id}
-style={{
-marginBottom: "12px",
-textAlign: msg.sender === "client" ? "right" : "left",
-}}
->
-<div
-style={{
-display: "inline-block",
-padding: "10px 14px",
-borderRadius: "12px",
-background:
-msg.sender === "client"
-? "#facc15"
-: "rgba(255,255,255,0.07)",
-color: msg.sender === "client" ? "#000" : "#fff",
-maxWidth: "80%",
-}}
->
-{msg.message}
-</div>
-</div>
-))
+msg={msg}
+clientId={clientId}
+isMobile={isMobile}
+/>
+);
+
+return messageElements;
+})
 )}
 
 <div ref={bottomRef} />
 </div>
 
-{/* Eingabe */}
-<div style={{ display: "flex", gap: "10px" }}>
+{/* Eingabe und Senden-Button */}
+<div style={{ display: "flex", alignItems: "stretch", gap: "10px" }}>
 <input
 value={newMessage}
 onChange={(e) => setNewMessage(e.target.value)}
+onKeyDown={(e) => {
+if (e.key === 'Enter') sendMessage();
+}}
 placeholder="Nachricht eingeben..."
 style={{
 flex: 1,
-padding: "10px",
-borderRadius: "8px",
+minWidth: "100px",
+padding: "12px",
+borderRadius: "999px",
 border: "1px solid #555",
 background: "#111",
 color: "white",
+fontSize: "15px",
 }}
 />
 
 <button
 onClick={sendMessage}
-disabled={sending}
+disabled={sending || !newMessage.trim()}
 style={{
-padding: "10px 16px",
-borderRadius: "8px",
+width: "auto",
+minWidth: "80px",
+padding: "12px 16px",
+borderRadius: "999px",
 background: "#facc15",
 color: "#111",
 fontWeight: 700,
 cursor: "pointer",
-opacity: sending ? 0.5 : 1,
+opacity: sending || !newMessage.trim() ? 0.5 : 1,
+transition: "opacity 0.2s",
+fontSize: "15px",
+lineHeight: "1.2",
 }}
 >
 Senden
