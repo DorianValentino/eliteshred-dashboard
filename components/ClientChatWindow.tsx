@@ -22,16 +22,15 @@ return (
 <div
 style={{
 marginBottom: "12px",
-// FIX: Äußeres Div wird zu Flex-Container, um inneres Div zu schrumpfen und auszurichten
 display: 'flex',
-justifyContent: isClient ? "flex-end" : "flex-start", // Steuert die Ausrichtung (links/rechts)
+justifyContent: isClient ? "flex-end" : "flex-start",
 width: '100%',
 }}
 >
 <div
 style={{
 padding: "10px 14px",
-maxWidth: "80%", // MAXIMALE BREITE AUF 80% FESTGELEGT
+maxWidth: "80%",
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -46,8 +45,7 @@ boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 wordWrap: "break-word" as 'break-word',
 display: 'block',
 minWidth: 0,
-// FIX: Erzwingt, dass die Breite nur so groß ist wie der Inhalt!
-width: 'fit-content' as 'fit-content',
+width: 'fit-content' as 'fit-content', // Erzwingt Breite = Inhalt
 }}
 >
 <p style={{
@@ -131,19 +129,26 @@ window.addEventListener('resize', checkMobile);
 return () => window.removeEventListener('resize', checkMobile);
 }, []);
 
-// 🔥 Scroll-Lock für den Body, wenn das Chatfenster geöffnet ist
+// 🔥 Scroll-Lock für den Body (ZUSÄTZLICH mit Scroll-Position Fix)
 useEffect(() => {
 if (typeof window !== 'undefined' && isMobile) {
+// Speichert die aktuelle Scroll-Position des Dashboards
+document.body.style.top = `-${window.scrollY}px`;
 document.body.style.overflow = 'hidden';
-document.body.style.position = 'fixed'; // Verhindert Springen auf iOS
+document.body.style.position = 'fixed';
 document.body.style.width = '100%';
 }
 
 return () => {
 if (typeof window !== 'undefined' && isMobile) {
+const scrollY = document.body.style.top;
 document.body.style.overflow = '';
 document.body.style.position = '';
 document.body.style.width = '';
+document.body.style.top = ''; // Löscht den Top-Wert
+
+// Stellt die vorherige Scroll-Position wieder her
+window.scrollTo(0, parseInt(scrollY || '0') * -1);
 }
 };
 }, [isMobile]);
@@ -267,25 +272,26 @@ width: isMobile ? "100%" : "420px",
 height: "100vh",
 background: "#000",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
+// FIX: Padding oben entfernt (jetzt in der Kopfzeile)
 padding: isMobile ? "0 20px 20px 20px" : "20px",
 display: "flex",
 flexDirection: "column",
-zIndex: 10002,
-// FIX: Verhindert Scrollen des gesamten Fensters
+// MAXIMIERTER Z-INDEX
+zIndex: 10003,
 overflowY: 'hidden',
 }}
 >
-{/* Kopfzeile (Titel und Button) - Keine Sticky Position */}
+{/* Kopfzeile (Titel und Button) */}
 <div
 style={{
 display: 'flex',
 justifyContent: 'space-between',
 alignItems: 'center',
-// FIX: PADDING OBEN AUF MOBILE HIERHIN VERSCHOBEN
+// FIX: PADDING OBEN AUF MOBILE HIERHIN VERSCHOBEN (für Statusleiste)
 paddingTop: isMobile ? "40px" : "0",
 marginBottom: "10px",
 paddingBottom: "10px",
-background: '#000', // Garantiert SOLIDER HINTERGRUND
+background: '#000',
 borderBottom: '1px solid rgba(255,255,255,0.1)',
 }}
 >
@@ -315,11 +321,11 @@ lineHeight: "1",
 {/* Nachrichten Container - Füllt den gesamten MITTLEREN Bereich aus und SCROLLT */}
 <div
 style={{
-flex: 1, // FIX: Füllt den gesamten verfügbaren vertikalen Raum aus
-overflowY: "auto", // FIX: NUR DIESER BEREICH SCROLLT
-paddingRight: "6px", // Scrollbar-Abstand
+flex: 1,
+overflowY: "auto",
+paddingRight: "6px",
 marginBottom: "12px",
-WebkitOverflowScrolling: 'touch', // Verbessert iOS Scrolling
+WebkitOverflowScrolling: 'touch',
 }}
 >
 {loading ? (
@@ -375,14 +381,14 @@ return messageElements;
 <div ref={bottomRef} />
 </div>
 
-{/* Eingabe und Senden-Button - Keine Sticky Position */}
+{/* Eingabe und Senden-Button */}
 <div
 style={{
 display: "flex",
 alignItems: "stretch",
 gap: "10px",
 paddingTop: '10px',
-background: '#000', // Garantiert SOLIDER HINTERGRUND
+background: '#000',
 }}
 >
 <input
