@@ -105,8 +105,7 @@ onClose: () => void;
 onMessagesRead?: () => void;
 };
 
-// Konstante für die geschätzte Höhe der Eingabeleiste (ca. 70px)
-const INPUT_BAR_HEIGHT = 70;
+// FIX: Konstante für den horizontalen Rand
 const HORIZONTAL_PADDING = 20;
 
 export default function ClientChatWindow({
@@ -255,10 +254,11 @@ position: "fixed",
 top: 0,
 right: 0,
 width: isMobile ? "100%" : "420px",
-height: "100vh",
+// FIX: Höhe auf 100% (der Parent-Elemente/Viewport) setzen, um mobile vh-Probleme zu umgehen
+height: "100%",
 background: "#000",
 borderLeft: isMobile ? "none" : "2px solid #facc15",
-// NEU: Nur vertikales Padding oben und unten, um die fixierten Elemente zu umfassen
+// Horizontaler Rand wird auf das Haupt-Div angewendet
 padding: isMobile ? `0 ${HORIZONTAL_PADDING}px` : `${HORIZONTAL_PADDING}px`,
 display: "flex",
 flexDirection: "column",
@@ -304,11 +304,11 @@ lineHeight: "1",
 {/* Nachrichten Container - Füllt den gesamten MITTLEREN Bereich aus und SCROLLT */}
 <div
 style={{
-flex: 1,
+flex: 1, // Füllt den gesamten vertikalen Raum zwischen Kopf- und Fußzeile aus
 overflowY: "auto",
 paddingRight: "6px",
-// WICHTIG: Fügt unten Platz für die absolut positionierte Eingabeleiste hinzu
-paddingBottom: `${INPUT_BAR_HEIGHT}px`,
+// FIX: Padding Bottom entfernt, da Eingabeleiste Teil des Flex-Layouts ist
+paddingBottom: '0',
 WebkitOverflowScrolling: 'touch',
 }}
 >
@@ -363,24 +363,21 @@ return messageElements;
 <div ref={bottomRef} />
 </div>
 
-{/* Eingabe und Senden-Button (ABSOLUT POSITIONIERT UNTEN) */}
+{/* Eingabe und Senden-Button (Statisch unten, als letztes Flex-Element) */}
 <div
 style={{
-// FIX: Absolute Positionierung, um es garantiert unten zu halten
-position: 'absolute',
-bottom: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
-left: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
-right: isMobile ? HORIZONTAL_PADDING : HORIZONTAL_PADDING,
+// FIX: Entfernt absolute Positionierung, lässt Flexbox die Position bestimmen
+position: 'relative',
+bottom: 'auto',
+left: 'auto',
+right: 'auto',
 
 display: "flex",
 alignItems: "stretch",
 gap: "10px",
 paddingTop: '10px',
-// HINTERGRUND: Muss fest sein, um Text dahinter abzudecken
 background: '#000',
-
-// Höhe für den Nachrichten-Padding-Offset
-height: INPUT_BAR_HEIGHT - 10,
+height: 'auto',
 }}
 >
 <input
