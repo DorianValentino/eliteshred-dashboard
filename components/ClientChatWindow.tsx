@@ -22,16 +22,16 @@ return (
 <div
 style={{
 marginBottom: "12px",
-// FIX: Äußeres Div wird zu Flex-Container, um inneres Div zu schrumpfen
+// FIX: Äußeres Div wird zu Flex-Container, um inneres Div zu schrumpfen und auszurichten
 display: 'flex',
-justifyContent: isClient ? "flex-end" : "flex-start", // Ausrichtung steuern
+justifyContent: isClient ? "flex-end" : "flex-start", // Steuert die Ausrichtung (links/rechts)
 }}
 >
 <div
 style={{
-// display: "inline-block" WURDE ENTFERNT
+// display: "inline-block" wurde entfernt, Flexbox übernimmt nun die Breitenanpassung
 padding: "10px 14px",
-maxWidth: "75%", // Die maximale Breite
+maxWidth: "75%", // Die maximale Breite bleibt 75%
 borderRadius: "18px",
 borderTopLeftRadius: isClient ? "18px" : "4px",
 borderTopRightRadius: isClient ? "4px" : "18px",
@@ -44,6 +44,8 @@ fontWeight: 500,
 boxShadow: isClient ? "0 4px 8px rgba(250, 204, 21, 0.3)" : "none",
 
 wordWrap: "break-word" as 'break-word',
+// NEU: Stellt sicher, dass die Bubble keinen unnötigen Leerraum um den Text lässt.
+flexShrink: 1,
 }}
 >
 <p style={{
@@ -126,6 +128,26 @@ checkMobile();
 window.addEventListener('resize', checkMobile);
 return () => window.removeEventListener('resize', checkMobile);
 }, []);
+
+// 🔥 NEU: Scroll-Lock für den Body, wenn das Chatfenster geöffnet ist
+useEffect(() => {
+// Nur auf Mobilgeräten und im Browser anwenden
+if (typeof window !== 'undefined' && isMobile) {
+document.body.style.overflow = 'hidden';
+// Optional: Zusätzliches Fix für iOS Over-Scrolling
+document.body.style.position = 'fixed';
+document.body.style.width = '100%';
+}
+
+return () => {
+if (typeof window !== 'undefined' && isMobile) {
+document.body.style.overflow = ''; // Stellt den Standard-Scroll wieder her
+document.body.style.position = '';
+document.body.style.width = '';
+}
+};
+}, [isMobile]);
+
 
 const scrollToBottom = () => {
 setTimeout(() => {
@@ -249,6 +271,9 @@ padding: isMobile ? "40px 20px 20px 20px" : "20px",
 display: "flex",
 flexDirection: "column",
 zIndex: 10002,
+// Wichtig: Überlauf des Chat-Fensters selbst zulassen
+overflowY: 'auto',
+WebkitOverflowScrolling: 'touch', // Verbessert das native iOS-Scrolling
 }}
 >
 {/* Kopfzeile (Titel und Button) */}
@@ -260,6 +285,11 @@ alignItems: 'center',
 marginBottom: "10px",
 paddingBottom: "10px",
 borderBottom: '1px solid rgba(255,255,255,0.1)',
+// Fixiert die Kopfzeile, damit sie nicht mitscrollt
+position: 'sticky',
+top: 0,
+zIndex: 10,
+background: 'rgba(0,0,0,0.97)', // Stellt sicher, dass der Hintergrund undurchsichtig ist
 }}
 >
 <h2 style={{ fontSize: "20px", fontWeight: 700, margin: 0 }}>
@@ -288,8 +318,9 @@ lineHeight: "1",
 {/* Nachrichten Container */}
 <div
 style={{
-flex: 1,
-overflowY: "auto",
+// Flex 1 entfernt hier den Scroll-Konflikt, da der Hauptcontainer jetzt scrollbar ist
+flexGrow: 1,
+overflowY: "visible", // Scrollen passiert jetzt im Hauptcontainer
 paddingRight: "6px",
 marginBottom: "12px",
 }}
@@ -348,7 +379,19 @@ return messageElements;
 </div>
 
 {/* Eingabe und Senden-Button */}
-<div style={{ display: "flex", alignItems: "stretch", gap: "10px" }}>
+<div
+style={{
+display: "flex",
+alignItems: "stretch",
+gap: "10px",
+// Fixiert die Eingabe unten
+paddingTop: '10px',
+background: 'rgba(0,0,0,0.97)',
+position: 'sticky',
+bottom: 0,
+zIndex: 10
+}}
+>
 <input
 value={newMessage}
 onChange={(e) => setNewMessage(e.target.value)}
