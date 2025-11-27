@@ -246,7 +246,6 @@ DARK BUTTON FIX (HÖCHSTE SPEZIFITÄT FÜR ZURÜCK-BUTTON)
   color: #facc15 !important; /* Textfarbe beibehalten */
   border: 1px solid #facc15 !important;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; /* Dunkler Schatten */
-  /* Animation und Maße werden von den Komponenten-Inline-Styles übernommen */
   transition: transform 0.2s ease, box-shadow 0.2s ease; 
 }
 
@@ -254,4 +253,13 @@ DARK BUTTON FIX (HÖCHSTE SPEZIFITÄT FÜR ZURÜCK-BUTTON)
 .btn-dark-outline:hover {
   background: #000 !important; /* Reines Schwarz beim Hover */
   box-shadow: 0 6px 15px rgba(0,0,0,0.7) !important; /* Dunkler, prominenter Schatten */
+}
+
+/* FIX FÜR MOBILE/TOUCH GERÄTE: Erzwingt den dunklen Hintergrund beim Drücken */
+.btn-dark-outline:active {
+  /* Übernimmt die Transformation des Basis-Buttons */
+  transform: translateY(1px) scale(0.98); 
+  /* Stellt sicher, dass der Hintergrund beim Tippen schwarz bleibt */
+  background: #000 !important; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
 }
