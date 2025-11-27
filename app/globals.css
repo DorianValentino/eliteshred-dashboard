@@ -139,7 +139,8 @@ border: none;
 font-weight: 600;
 font-size: 1rem;
 cursor: pointer;
-background: linear-gradient(#000000);
+/* Standard-Button ist Gelb */
+background: linear-gradient(90deg, #facc15, #eab308);
 color: #0f172a;
 box-shadow: 0 12px 30px rgba(250, 204, 21, 0.35);
 transition: 0.15s ease;
@@ -234,4 +235,23 @@ svg {
 max-width: 100% !important;
 height: auto !important;
 }
+}
+
+/* ============================================
+DARK BUTTON FIX (HÖCHSTE SPEZIFITÄT FÜR ZURÜCK-BUTTON)
+============================================ */
+.btn-dark-outline {
+  /* Überschreibt die Button-Regel explizit und dunkel */
+  background: linear-gradient(90deg, #111 0%, #000 100%) !important; 
+  color: #facc15 !important; /* Textfarbe beibehalten */
+  border: 1px solid #facc15 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; /* Dunkler Schatten */
+  /* Animation und Maße werden von den Komponenten-Inline-Styles übernommen */
+  transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+/* Hover-Stil für den dunklen Button */
+.btn-dark-outline:hover {
+  background: #000 !important; /* Reines Schwarz beim Hover */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.7) !important; /* Dunkler, prominenter Schatten */
 }
