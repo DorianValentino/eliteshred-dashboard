@@ -4,39 +4,32 @@ import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
-const BUCKET_NAME = "formchecks"; // ❗ Falls dein Bucket anders heißt → hier anpassen
+const BUCKET_NAME = "formchecks";
 
 export default function OnboardingWizard() {
   const router = useRouter();
 
-  // Wizard Schritt
   const [step, setStep] = useState(1);
 
-  // Basisdaten
   const [vorname, setVorname] = useState("");
   const [nachname, setNachname] = useState("");
   const [alter, setAlter] = useState("");
   const [groesse, setGroesse] = useState("");
   const [startGewicht, setStartGewicht] = useState("");
 
-  // Alltag & Schlaf
   const [alltag, setAlltag] = useState("");
   const [schlaf, setSchlaf] = useState("");
 
-  // Ernährung
   const [mahlzeiten, setMahlzeiten] = useState("");
   const [lebensmittel, setLebensmittel] = useState("");
 
-  // Training
   const [gym, setGym] = useState("");
   const [trainingstage, setTrainingstage] = useState("");
   const [einschraenkungen, setEinschraenkungen] = useState("");
 
-  // Ziele & Problem
   const [ziele, setZiele] = useState("");
   const [problem, setProblem] = useState("");
 
-  // Bilder
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [sideImage, setSideImage] = useState<File | null>(null);
   const [backImage, setBackImage] = useState<File | null>(null);
@@ -44,41 +37,42 @@ export default function OnboardingWizard() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // =========================
-  // NAVIGATION
-  // =========================
   const goNext = () => {
-    // simple Validierung pro Step
     if (step === 1) {
       if (!vorname || !nachname || !alter || !groesse || !startGewicht) {
         setErrorMsg("Bitte fülle alle Basisdaten aus (inkl. Startgewicht).");
         return;
       }
     }
+
     if (step === 2) {
       if (!alltag || !schlaf) {
         setErrorMsg("Bitte beantworte Fragen zu Alltag & Schlaf.");
         return;
       }
     }
+
     if (step === 3) {
       if (!mahlzeiten || !lebensmittel) {
         setErrorMsg("Bitte beantworte die Ernährungsfragen.");
         return;
       }
     }
+
     if (step === 4) {
       if (!gym || !trainingstage || !einschraenkungen) {
         setErrorMsg("Bitte beantworte alle Trainingsfragen.");
         return;
       }
     }
+
     if (step === 5) {
       if (!ziele || !problem) {
         setErrorMsg("Bitte formuliere deine Ziele und dein größtes Problem.");
         return;
       }
     }
+
     if (step === 6) {
       if (!frontImage || !sideImage || !backImage) {
         setErrorMsg("Bitte lade alle drei Formcheck-Bilder hoch.");
@@ -95,17 +89,14 @@ export default function OnboardingWizard() {
     if (step > 1) setStep(step - 1);
   };
 
-  // =========================
-  // SPEICHERN (+ KI-Eintrag)
-  // =========================
   const saveOnboarding = async () => {
     setErrorMsg(null);
     setLoading(true);
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    console.log("SESSION:", sessionData);
-
     const email = localStorage.getItem("client_email");
+
+    console.log("LOCAL EMAIL:", email);
+
     if (!email) {
       setLoading(false);
       setErrorMsg("Keine Session gefunden. Bitte logge dich erneut ein.");
@@ -120,20 +111,48 @@ export default function OnboardingWizard() {
         return;
       }
 
-      // 1) Bilder uploaden
+      // 1) ClientID aus der Klienten-Tabelle holen
+      const { data: clientRow, error: clientErr } = await supabase
+        .from("Klienten")
+        .select("ClientID")
+        .eq("Email", email)
+        .single();
+
+      console.log("CLIENT ROW:", clientRow);
+      console.log("CLIENT ERR:", clientErr);
+
+      if (clientErr || !clientRow?.ClientID) {
+        console.log(
+          "ClientID Fehler:",
+          clientErr?.message || "Keine ClientID gefunden"
+        );
+        throw new Error("ClientID konnte nicht geladen werden");
+      }
+
+      const clientId = String(clientRow.ClientID).trim();
+      const uploadId = crypto.randomUUID();
+
+      console.log("CLIENT ID FINAL:", clientId);
+
+      if (!clientId) {
+        throw new Error("ClientID ist leer oder undefined");
+      }
+
+      // 2) Bilder uploaden
       const uploadImage = async (file: File, name: string) => {
-        const ext = file.name.split(".").pop() || "jpg";
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const safeExt = ext === "jpeg" ? "jpg" : ext;
+        const path = `${clientId}/onboarding/${uploadId}/${name}.${safeExt}`;
 
-        const user = supabase.auth.getUser();
-        const uid = (await user).data.user?.id;
-
-        const path = `${uid}/onboarding/${name}.${ext}`;
-
+        console.log("UPLOAD NAME:", name);
+        console.log("UPLOAD FILE:", file?.name);
+        console.log("UPLOAD PATH FINAL:", path);
 
         const { error: uploadErr } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(path, file, {
-            upsert: true, // falls schon existiert, überschreiben
+            upsert: false,
+            contentType: file.type || "image/jpeg",
           });
 
         if (uploadErr) {
@@ -142,14 +161,23 @@ export default function OnboardingWizard() {
         }
 
         const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
-        return data?.publicUrl ?? null;
+
+        if (!data?.publicUrl) {
+          throw new Error(`Keine Public URL für ${name} erhalten`);
+        }
+
+        return data.publicUrl;
       };
 
       const frontUrl = await uploadImage(frontImage, "front");
       const sideUrl = await uploadImage(sideImage, "side");
       const backUrl = await uploadImage(backImage, "back");
 
-      // 2) Klienten-Daten speichern
+      console.log("FRONT URL:", frontUrl);
+      console.log("SIDE URL:", sideUrl);
+      console.log("BACK URL:", backUrl);
+
+      // 3) Klienten-Daten speichern
       const { error: updateErr } = await supabase
         .from("Klienten")
         .update({
@@ -180,68 +208,6 @@ export default function OnboardingWizard() {
         throw updateErr;
       }
 
-      // 3) KI-Trainingsplan-Eintrag anlegen
-      // -----------------------------------
-      // Ziel grob einordnen (für "ziel_typ")
-      const lowerZiele = ziele.toLowerCase();
-      let zielTyp = "Custom";
-
-      if (
-        lowerZiele.includes("abnehmen") ||
-        lowerZiele.includes("fett") ||
-        lowerZiele.includes("definition")
-      ) {
-        zielTyp = "Abnehmen";
-      } else if (
-        lowerZiele.includes("muskel") ||
-        lowerZiele.includes("aufbauen") ||
-        lowerZiele.includes("masse")
-      ) {
-        zielTyp = "Muskelaufbau";
-      } else if (
-        lowerZiele.includes("leistung") ||
-        lowerZiele.includes("stärker") ||
-        lowerZiele.includes("performance")
-      ) {
-        zielTyp = "Performance";
-      }
-
-      // Trainingstage in Zahl umwandeln (wenn möglich)
-      const trainingstageInt = trainingstage
-        ? parseInt(trainingstage, 10)
-        : null;
-
-      const equipmentSummary = gym || "nicht angegeben";
-      const einschrSummary = einschraenkungen || "keine";
-      const notizen =
-        `Ziele: ${ziele}\n` +
-        `Größtes Problem: ${problem}\n` +
-        `Alltag: ${alltag}\n` +
-        `Schlaf (Angabe): ${schlaf}\n` +
-        `Mahlzeiten: ${mahlzeiten}\n` +
-        `Lebensmittel: ${lebensmittel}\n` +
-        `Trainingstage (Input): ${trainingstage}\n`;
-
-      // ❗ Falls deine Spalten in Supabase anders heißen,
-      // bitte hier die Keys anpassen.
-      const { error: kiError } = await supabase
-        .from("KI_Trainingsplaene")
-        .insert({
-          email,
-          ziel_typ: zielTyp,
-          trainingstage: trainingstageInt,
-          equipment: equipmentSummary,
-          einschraenkungen: einschrSummary,
-          notizen,
-          status: "offen",
-        });
-
-      if (kiError) {
-        // KI-Fehler soll NICHT das Onboarding blocken
-        console.log("KI-Trainingsplan Insert Fehler:", kiError.message);
-      }
-
-      // 4) Weiter auf Waiting-Seite
       router.replace("/waiting");
     } catch (err: any) {
       console.log("Onboarding Fehler:", err?.message || err);
@@ -253,9 +219,6 @@ export default function OnboardingWizard() {
     }
   };
 
-  // =========================
-  // HILFS-UI-KOMPONENTEN
-  // =========================
   const renderInput = (
     label: string,
     value: string,
@@ -392,9 +355,6 @@ export default function OnboardingWizard() {
     </div>
   );
 
-  // =========================
-  // UI WRAPPER
-  // =========================
   return (
     <div
       style={{
@@ -415,7 +375,6 @@ export default function OnboardingWizard() {
           boxShadow: "0 0 40px rgba(0,0,0,0.9)",
         }}
       >
-        {/* Header + Progress */}
         <div style={{ marginBottom: "18px" }}>
           <div
             style={{
@@ -458,7 +417,6 @@ export default function OnboardingWizard() {
           </div>
         </div>
 
-        {/* Fehler */}
         {errorMsg && (
           <div
             style={{
@@ -474,7 +432,6 @@ export default function OnboardingWizard() {
           </div>
         )}
 
-        {/* STEP CONTENT */}
         {step === 1 && (
           <>
             <h2 style={{ fontSize: "20px", marginBottom: "8px" }}>Basisdaten</h2>
@@ -721,7 +678,6 @@ export default function OnboardingWizard() {
           </>
         )}
 
-        {/* Navigation unten */}
         <div
           style={{
             marginTop: "22px",
